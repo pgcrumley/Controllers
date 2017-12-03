@@ -101,15 +101,15 @@ class Transmitter:
                 VALID_PINS
                 )
             )
-        self.pin = board_pin
+        self._board_pin = board_pin
         if retries < 1:
             raise ValueError('retries value of {} is not > 0'.format(retries))
         self.__retries = retries
 
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(self.pin, GPIO.OUT)
-        GPIO.output(self.pin, GPIO.LOW)
+        GPIO.setup(self._board_pin, GPIO.OUT)
+        GPIO.output(self._board_pin, GPIO.LOW)
 
         self.__alive = True
 
@@ -118,7 +118,7 @@ class Transmitter:
         Release resources and mark controller as dead
         """
         self.__alive = False
-        self.pin = None
+        self._board_pin = None
         GPIO.cleanup()
             
     def __transmit_bits(self, values):
@@ -132,12 +132,12 @@ class Transmitter:
                 high_time = self._ZERO_BIT_TIME_HIGH_IN_SECONDS
             
             start_time = time.time()
-            GPIO.output(self.pin, GPIO.HIGH)
+            GPIO.output(self._board_pin, GPIO.HIGH)
             high_end_time = time.time() + high_time
             total_end_time = time.time() + self._TOTAL_BIT_TIME_IN_SECONDS
             while time.time() < high_end_time:
                 pass
-            GPIO.output(self.pin, GPIO.LOW) 
+            GPIO.output(self._board_pin, GPIO.LOW) 
             while time.time() < total_end_time:
                 pass
             
@@ -221,6 +221,8 @@ class Transmitter:
         
         The command is normally sent multiple times for some degree of
         robustness.
+        
+        I found sequence this while coding test cases.  (pgc)
         """
         if not self.__alive:
             raise RuntimeError('etekcity_controller has been closed')
@@ -238,6 +240,8 @@ class Transmitter:
         
         The command is normally sent multiple times for some degree of
         robustness.
+
+        I found sequence this while coding test cases.  (pgc)
         """
         if not self.__alive:
             raise RuntimeError('etekcity_controller has been closed')
