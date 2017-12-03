@@ -142,11 +142,12 @@ class Transmitter:
                 pass
             
     def __addr_to_bits(self, addr):
-        if addr < FIRST_VALID_ADDRESS or addr > LAST_VALID_ADDRESS:
+        if (addr < Transmitter.FIRST_VALID_ADDRESS 
+                or addr > Transmitter.LAST_VALID_ADDRESS):
             raise ValueError('address of {} is not between {} and {}'.format(
                 addr,
-                FIRST_VALID_ADDRESS,
-                LAST_VALID_ADDRESS
+                Transmitter.FIRST_VALID_ADDRESS,
+                Transmitter.LAST_VALID_ADDRESS
                 )
             )
         result = []
