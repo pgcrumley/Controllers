@@ -172,23 +172,6 @@ class Transmitter:
             self.__transmit_bits(self._END_BITS)
             time.sleep(self._DELAY_AFTER_TRANSMIT_IN_SECONDS)
         
-    def transmit_all_on(self):
-        """
-        Turn on all the relays. 
-        
-        The command is normally sent multiple times for some degree of
-        robustness.
-        """
-        if not self.__alive:
-            raise RuntimeError('etekcity_controller has been closed')
-        
-        for i in range(self.__retries):
-            self._transmit_on(85, 1)
-            self._transmit_on(85, 2)
-            self._transmit_on(85, 3)
-            self._transmit_on(85, 4)
-            self._transmit_on(85, 5)
-        
     def transmit_off(self, addr, unit):
         """
         Send a command to turn off the relay specified by addr & unit. 
@@ -243,11 +226,11 @@ class Transmitter:
             raise RuntimeError('etekcity_controller has been closed')
         
         for i in range(self.__retries):
-            self._transmit_on(85, 1)
-            self._transmit_on(85, 2)
-            self._transmit_on(85, 3)
-            self._transmit_on(85, 4)
-            self._transmit_on(85, 5)
+            self.transmit_on(85, 1)
+            self.transmit_on(85, 2)
+            self.transmit_on(85, 3)
+            self.transmit_on(85, 4)
+            self.transmit_on(85, 5)
         
     def transmit_all_off(self):
         """
@@ -260,11 +243,11 @@ class Transmitter:
             raise RuntimeError('etekcity_controller has been closed')
         
         for i in range(self.__retries):
-            self._transmit_off(85, 1)
-            self._transmit_off(85, 2)
-            self._transmit_off(85, 3)
-            self._transmit_off(85, 4)
-            self._transmit_off(85, 5)
+            self.transmit_off(85, 1)
+            self.transmit_off(85, 2)
+            self.transmit_off(85, 3)
+            self.transmit_off(85, 4)
+            self.transmit_off(85, 5)
         
 
 def usage():
