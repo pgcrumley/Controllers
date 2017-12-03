@@ -49,38 +49,58 @@ class Transmitter:
     I have not found documentation on the chips or signals so the 
     above has been determined by measuring existing devices.
     """
-
-    TOTAL_BIT_TIME_IN_SECONDS = 720 / 1000000.0
-    ZERO_BIT_TIME_HIGH_IN_SECONDS = 180 / 1000000.0
-    ONE_BIT_TIME_HIGH_IN_SECONS = (
-        TOTAL_BIT_TIME_IN_SECONDS 
-        - ZERO_BIT_TIME_HIGH_IN_SECONDS
-        )
-    DELAY_AFTER_TRANSMIT_IN_SECONDS = 5000 / 1000000.0
+    # first valid address
+    FIRST_VALID_ADDRESS = 0
+    # last valid address
+    LAST_VALID_ADDRESS = 255
     
-    # these appear to be stable across units 
-    UNIT_BITS = {1:[0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1],
-                 2:[0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
-                 3:[0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0],
-                 4:[0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0],
-                 5:[0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0],
-                 }
-    ON_BITS = [0, 0, 1, 1]
-    OFF_BITS = [1, 1, 0, 0]
-    END_BITS = [0]
-    
-    COPIES_TO_TRANSMIT = 6  # this might be increased in noisy environments
+    # first valid unit
+    FIRST_VALID_UNIT = 1
+    # last valid unit
+    LAST_VALID_UNIT = 5
     
     VALID_PINS = [3, 5, 7, 8, 10, 
                   11, 12, 13, 15, 16, 18, 19, 
                   21, 22, 23, 24, 26, 29, 
                   31, 32, 33, 35, 36, 37, 38, 40]
+
+    # this might be increased in noisy environments
+    DEFAULT_COPIES_TO_TRANSMIT = 6
     
-    def __init__(self, board_pin, retries=COPIES_TO_TRANSMIT):
+    #
+    # internal details
+    #
+    
+    _TOTAL_BIT_TIME_IN_SECONDS = 720 / 1000000.0
+    _ZERO_BIT_TIME_HIGH_IN_SECONDS = 180 / 1000000.0
+    _ONE_BIT_TIME_HIGH_IN_SECONDS = (
+        _TOTAL_BIT_TIME_IN_SECONDS 
+        - _ZERO_BIT_TIME_HIGH_IN_SECONDS
+        )
+    _DELAY_AFTER_TRANSMIT_IN_SECONDS = 5000 / 1000000.0
+    
+    # these appear to be stable across units 
+    _UNIT_BITS = {1:[0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1],
+                  2:[0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0],
+                  3:[0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0],
+                  4:[0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0],
+                  5:[0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0],
+                  }
+    _ON_BITS = [0, 0, 1, 1]
+    _OFF_BITS = [1, 1, 0, 0]
+    _END_BITS = [0]
+    
+    def __init__(self, board_pin, retries=DEFAULT_COPIES_TO_TRANSMIT):
         """
         Create a transmitter give the board_pin to which the 433 MHz
         transmitter is connected.
         """
+        if board_pin not in VALID_PINS:
+            raise ValueError('board_pin of {} must be in {}'.format(
+                board_pin,
+                VALID_PINS
+                )
+            )
         self.pin = board_pin
         if retries < 1:
             raise ValueError('retries value of {} is not > 0'.format(retries))
@@ -107,14 +127,14 @@ class Transmitter:
         """
         for value in values:
             if value:
-                high_time = self.ONE_BIT_TIME_HIGH_IN_SECONS
+                high_time = self._ONE_BIT_TIME_HIGH_IN_SECONDS
             else:
-                high_time = self.ZERO_BIT_TIME_HIGH_IN_SECONDS
+                high_time = self._ZERO_BIT_TIME_HIGH_IN_SECONDS
             
             start_time = time.time()
             GPIO.output(self.pin, GPIO.HIGH)
             high_end_time = time.time() + high_time
-            total_end_time = time.time() + self.TOTAL_BIT_TIME_IN_SECONDS
+            total_end_time = time.time() + self._TOTAL_BIT_TIME_IN_SECONDS
             while time.time() < high_end_time:
                 pass
             GPIO.output(self.pin, GPIO.LOW) 
@@ -122,6 +142,13 @@ class Transmitter:
                 pass
             
     def __addr_to_bits(self, addr):
+        if addr < FIRST_VALID_ADDRESS or addr > LAST_VALID_ADDRESS:
+            raise ValueError('address of {} is not between {} and {}'.format(
+                addr,
+                FIRST_VALID_ADDRESS,
+                LAST_VALID_ADDRESS
+                )
+            )
         result = []
         for i in [7, 6, 5, 4, 3, 2, 1, 0]:
             result.append((addr >> i) & 1 )
@@ -139,10 +166,10 @@ class Transmitter:
         
         for i in range(self.__retries):
             self.__transmit_bits(self.__addr_to_bits(addr))
-            self.__transmit_bits(self.UNIT_BITS[unit])
-            self.__transmit_bits(self.ON_BITS)
-            self.__transmit_bits(self.END_BITS)
-            time.sleep(self.DELAY_AFTER_TRANSMIT_IN_SECONDS)
+            self.__transmit_bits(self._UNIT_BITS[unit])
+            self.__transmit_bits(self._ON_BITS)
+            self.__transmit_bits(self._END_BITS)
+            time.sleep(self._DELAY_AFTER_TRANSMIT_IN_SECONDS)
         
     def transmit_off(self, addr, unit):
         """
@@ -156,10 +183,10 @@ class Transmitter:
         
         for i in range(self.__retries):
             self.__transmit_bits(self.__addr_to_bits(addr))
-            self.__transmit_bits(self.UNIT_BITS[unit])
-            self.__transmit_bits(self.OFF_BITS)
-            self.__transmit_bits(self.END_BITS)
-            time.sleep(self.DELAY_AFTER_TRANSMIT_IN_SECONDS)
+            self.__transmit_bits(self._UNIT_BITS[unit])
+            self.__transmit_bits(self._OFF_BITS)
+            self.__transmit_bits(self._END_BITS)
+            time.sleep(self._DELAY_AFTER_TRANSMIT_IN_SECONDS)
 
     def transmit_action(self, addr, unit, action):
         """
@@ -235,10 +262,10 @@ if '__main__' == __name__ :
         unit = int(sys.argv[3])
         if DEBUG:
             print('unit:       {}'.format(unit))
-        if unit not in Transmitter.UNIT_BITS:
+        if unit not in Transmitter._UNIT_BITS:
             print('unit of {} is not in {}'.format(
                     unit, 
-                    list(Transmitter.UNIT_BITS.keys())),
+                    list(Transmitter._UNIT_BITS.keys())),
                   file=sys.stderr)
             usage()
 

@@ -43,23 +43,31 @@ RETRY_COUNT = 3
 DELAY_TIME_IN_SECONDS = 0.5
 LONG_DELAY_TIME_IN_SECONDS = 3.0
 
-# default start addr
-DEFAULT_START_ADDR = 0
-# default end addr
-DEFAULT_END_ADDR = 255
+# first valid address is also default start addr
+FIRST_VALID_ADDR = Transmitter.FIRST_VALID_ADDRESS
+# last valid address is also default end addr
+LAST_VALID_ADDR = Transmitter.LAST_VALID_ADDRESS
 
 if len(sys.argv) > 1:
     if sys.argv[1] == '-h' or sys.argv[1] == '-?' or sys.argv[1] == '--help':
         print('usage: etekcity_try_addrs.py [start_addr [end_addr]]', 
               file=sys.stderr)
-        print('    start and end must be between 0 and 255', file=sys.stderr)
+        print('    start and end must be between {} and {}', 
+              FIRST_VALID_ADDR,
+              LAST_VALID_ADDR,
+              file=sys.stderr
+              )
         print('    start must be < end', file=sys.stderr)
-        print('    start and end default to 0 and 255', file=sys.stderr)
+        print('    start and end default to {} and {}',
+              FIRST_VALID_ADDR,
+              LAST_VALID_ADDR,
+              file=sys.stderr
+              )
         print('    setting start addr slows down tests', file=sys.stderr)
         exit(1)
 
-start = DEFAULT_START_ADDR
-end = DEFAULT_END_ADDR
+start = FIRST_VALID_ADDR
+end = LAST_VALID_ADDR
 delay = DELAY_TIME_IN_SECONDS
 
 if len(sys.argv) > 1:
@@ -67,34 +75,41 @@ if len(sys.argv) > 1:
         start = int(sys.argv[1])
         delay = LONG_DELAY_TIME_IN_SECONDS
     except Exception as e:
-        print('start_addr parameter of "{}" is not {} to {}',
+        print('start_addr parameter of "{}" is not between {} to {}',
               sys.argv[1], 
-              DEFAULT_START_ADDR,
-              DEFAULT_END_ADDR)
-
+              FIRST_VALID_ADDR,
+              LAST_VALID_ADDR,
+              file=sys.stderr
+              )
         exit(2)
 if len(sys.argv) > 2:
     try:
         end = int(sys.argv[2])
     except Exception as e:
-        print('end_addr parameter of "{}" is not {} to {}',
-              sys.argv[2], 
-              DEFAULT_START_ADDR,
-              DEFAULT_END_ADDR)
+        print('end_addr parameter of "{}" is not between {} to {}',
+              sys.argv[2],
+              FIRST_VALID_ADDR,
+              LAST_VALID_ADDR,
+              file=sys.stderr
+              )
         exit(2)
 
-if start < DEFAULT_START_ADDR or start > DEFAULT_END_ADDR:
+if start < FIRST_VALID_ADDR or start > LAST_VALID_ADDR:
     print('start_addr of {} must be between {} and {} inclusive', 
-          file=sys.stderr, 
-          DEFAULT_START_ADDR,
-          DEFAULT_END_ADDR)
+          start,
+          FIRST_VALID_ADDR,
+          LAST_VALID_ADDR,
+          file=sys.stderr
+          )
     exit(2)
 
-if end < DEFAULT_START_ADDR or end > DEFAULT_END_ADDR:
+if end < FIRST_VALID_ADDR or end > LAST_VALID_ADDR:
     print('end_addr of {} must be between {} and {} inclusive', 
-          file=sys.stderr, 
-          DEFAULT_START_ADDR,
-          DEFAULT_END_ADDR)
+          end,
+          FIRST_VALID_ADDR,
+          LAST_VALID_ADDR,
+          file=sys.stderr
+          )
     exit(2)
 
 if start >= end:
