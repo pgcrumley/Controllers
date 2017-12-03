@@ -216,7 +216,7 @@ if '__main__' == __name__ :
     try:
         board_pin = int(sys.argv[1])
         if DEBUG:
-            print('board_pin:  {}\n'.format(board_pin))
+            print('board_pin:  {}'.format(board_pin))
         if board_pin not in Transmitter.VALID_PINS:
             print('board_pin of {} is not in {}'.format(
                     board_pin, 
@@ -226,7 +226,7 @@ if '__main__' == __name__ :
             
         addr = int(sys.argv[2], 16)
         if DEBUG:
-            print('addr:         {}\n'.format(addr))
+            print('addr:       {}'.format(addr))
         if (0 > addr) or (255 < addr):
             print('addr of {} is not in {}'.format(addr, range(0,256)),
                   file=sys.stderr)
@@ -234,7 +234,7 @@ if '__main__' == __name__ :
         
         unit = int(sys.argv[3])
         if DEBUG:
-            print('unit:       {}\n'.format(unit))
+            print('unit:       {}'.format(unit))
         if unit not in Transmitter.UNIT_BITS:
             print('unit of {} is not in {}'.format(
                     unit, 
@@ -243,7 +243,7 @@ if '__main__' == __name__ :
             usage()
 
         if DEBUG:
-            print('action:     {}\n'.format(sys.argv[4]))                    
+            print('action:     {}'.format(sys.argv[4]))                    
         if  'ON' == sys.argv[4].upper():
             action = True;
         elif 'OFF' == sys.argv[4].upper():
@@ -260,10 +260,10 @@ if '__main__' == __name__ :
         
 
     if DEBUG:
-        print('board_pin:  {}\n'.format(board_pin))
-        print('addr:       {}\n'.format(addr))
-        print('unit:       {}\n'.format(unit))
-        print('action:     {}\n'.format(action))
+        print('board_pin:  {}'.format(board_pin), file=sys.stderr)
+        print('addr:       {}'.format(addr), file=sys.stderr)
+        print('unit:       {}'.format(unit), file=sys.stderr)
+        print('action:     {}'.format(action), file=sys.stderr)
     
     transmitter = Transmitter(board_pin)
     transmitter.transmit_action(addr, unit, action)

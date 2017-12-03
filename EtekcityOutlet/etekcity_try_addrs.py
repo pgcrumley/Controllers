@@ -39,54 +39,76 @@ from etekcity_controller import Transmitter
 TRANSMIT_PIN = 18
 # try increasing this if the relays never turn on
 RETRY_COUNT = 3
+# you can increase this if the tries go by too fast
+DELAY_TIME_IN_SECONDS = 0.5
+LONG_DELAY_TIME_IN_SECONDS = 3.0
+
+# default start addr
+DEFAULT_START_ADDR = 0
+# default end addr
+DEFAULT_END_ADDR = 255
 
 if len(sys.argv) > 1:
     if sys.argv[1] == '-h' or sys.argv[1] == '-?' or sys.argv[1] == '--help':
-        print('usage: etekcity_try_addrs.py [start-addr [end-addr]]', 
+        print('usage: etekcity_try_addrs.py [start_addr [end_addr]]', 
               file=sys.stderr)
-        print('    start and end must be between 0 and 256', file=sys.stderr)
+        print('    start and end must be between 0 and 255', file=sys.stderr)
         print('    start must be < end', file=sys.stderr)
-        print('    start and end default to 0 and 256', file=sys.stderr)
+        print('    start and end default to 0 and 255', file=sys.stderr)
         print('    setting start addr slows down tests', file=sys.stderr)
         exit(1)
 
-start = 0
-end = 256
-delay = 0.5
+start = DEFAULT_START_ADDR
+end = DEFAULT_END_ADDR
+delay = DELAY_TIME_IN_SECONDS
+
 if len(sys.argv) > 1:
     try:
         start = int(sys.argv[1])
-        delay = 3
+        delay = LONG_DELAY_TIME_IN_SECONDS
     except Exception as e:
-        print('parameter of "{}" is not "0" to "256"', sys.argv[1])
+        print('start_addr parameter of "{}" is not {} to {}',
+              sys.argv[1], 
+              DEFAULT_START_ADDR,
+              DEFAULT_END_ADDR)
+
         exit(2)
 if len(sys.argv) > 2:
     try:
         end = int(sys.argv[2])
     except Exception as e:
-        print('parameter of "{}" is not "0" to "256"', sys.argv[2])
+        print('end_addr parameter of "{}" is not {} to {}',
+              sys.argv[2], 
+              DEFAULT_START_ADDR,
+              DEFAULT_END_ADDR)
         exit(2)
 
-if start < 0 or start > 256:
-    print('start must be between 0 and 256 inclusive', file=sys.stderr)
+if start < DEFAULT_START_ADDR or start > DEFAULT_END_ADDR:
+    print('start_addr of {} must be between {} and {} inclusive', 
+          file=sys.stderr, 
+          DEFAULT_START_ADDR,
+          DEFAULT_END_ADDR)
     exit(2)
 
-if end < 0 or end > 256:
-    print('end must be between 0 and 256 inclusive', file=sys.stderr)
+if end < DEFAULT_START_ADDR or end > DEFAULT_END_ADDR:
+    print('end_addr of {} must be between {} and {} inclusive', 
+          file=sys.stderr, 
+          DEFAULT_START_ADDR,
+          DEFAULT_END_ADDR)
     exit(2)
 
 if start >= end:
-    print('end must be > start', file=sys.stderr)
+    print('end_addr must be > start_addr', file=sys.stderr)
     exit(2)
 
 
 print('looking for addrs between {} and {}'.format(start, end))
 
 ec = Transmitter(TRANSMIT_PIN, retries=RETRY_COUNT)
-for addr in range(start, end):
-    print('addr {}'.format(i))
+for addr in range(start, end+1):
+    print('addr {}'.format(addr))
     for unit in [1, 2, 3, 4, 5]:
         ec.transmit_on(addr, unit)
-    time.sleep(1)
+    time.sleep(DELAY_TIME_IN_SECONDS)
     for unit in [1, 2, 3, 4, 5]:
         ec.transmit_off(addr, unit)
