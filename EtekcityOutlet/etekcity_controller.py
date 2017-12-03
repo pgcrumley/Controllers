@@ -172,6 +172,23 @@ class Transmitter:
             self.__transmit_bits(self._END_BITS)
             time.sleep(self._DELAY_AFTER_TRANSMIT_IN_SECONDS)
         
+    def transmit_all_on(self):
+        """
+        Turn on all the relays. 
+        
+        The command is normally sent multiple times for some degree of
+        robustness.
+        """
+        if not self.__alive:
+            raise RuntimeError('etekcity_controller has been closed')
+        
+        for i in range(self.__retries):
+            self._transmit_on(85, 1)
+            self._transmit_on(85, 2)
+            self._transmit_on(85, 3)
+            self._transmit_on(85, 4)
+            self._transmit_on(85, 5)
+        
     def transmit_off(self, addr, unit):
         """
         Send a command to turn off the relay specified by addr & unit. 
@@ -215,6 +232,40 @@ class Transmitter:
         else:
             raise ValueError('expect value of "ON", "OFF", True or False')
 
+    def transmit_all_on(self):
+        """
+        Turn on all the relays. 
+        
+        The command is normally sent multiple times for some degree of
+        robustness.
+        """
+        if not self.__alive:
+            raise RuntimeError('etekcity_controller has been closed')
+        
+        for i in range(self.__retries):
+            self._transmit_on(85, 1)
+            self._transmit_on(85, 2)
+            self._transmit_on(85, 3)
+            self._transmit_on(85, 4)
+            self._transmit_on(85, 5)
+        
+    def transmit_all_off(self):
+        """
+        Turn off all the relays. 
+        
+        The command is normally sent multiple times for some degree of
+        robustness.
+        """
+        if not self.__alive:
+            raise RuntimeError('etekcity_controller has been closed')
+        
+        for i in range(self.__retries):
+            self._transmit_off(85, 1)
+            self._transmit_off(85, 2)
+            self._transmit_off(85, 3)
+            self._transmit_off(85, 4)
+            self._transmit_off(85, 5)
+        
 
 def usage():
     print('usage:  Etekcity.py board_pin addr unit on|off',
@@ -233,6 +284,15 @@ if '__main__' == __name__ :
     """
     Simple command to operate devices.
     """
+    
+    ## special case
+    if 2 == len(sys.argv):
+        board_pin = int(sys.argv[1])
+        transmitter = Transmitter(board_pin)
+        transmitter.transmit_all_off()
+        exit(0)
+    
+    ## normal case
     if 5 != len(sys.argv):
         print('len(sys.argv) is {}'.format(len(sys.argv)), file=sys.stderr)
         usage()
