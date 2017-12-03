@@ -90,8 +90,7 @@ class Transmitter:
     _OFF_BITS = [1, 1, 0, 0]
     _END_BITS = [0]
     
-    def __init__(self, board_pin, 
-                 retries=Transmitter.DEFAULT_COPIES_TO_TRANSMIT):
+    def __init__(self, board_pin, retries=DEFAULT_COPIES_TO_TRANSMIT):
         """
         Create a transmitter give the board_pin to which the 433 MHz
         transmitter is connected.
