@@ -152,6 +152,14 @@ class Simple_RequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(bytes(json.dumps(result, indent=1), "utf8"))
         return
  
+    def log_message(self, format, *args):
+        """
+        This quiets the annoying messages to STDOUT.
+        
+        Remove this if you want to see those lines.
+        """
+        return
+ 
  
 if '__main__' == __name__:
     parser = argparse.ArgumentParser(
