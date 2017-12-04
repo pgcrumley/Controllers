@@ -42,6 +42,7 @@ The server must run as root to have access to the GPIO pins.
 
 """
 
+import argparse
 import datetime
 import json
 import sys
@@ -85,7 +86,7 @@ class Simple_RequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
  
         # Send headers
-        self.send_header('Content-type','text/html')
+        self.send_header('Content-Type','text/html')
         self.end_headers()
 
         # Write content as utf-8 data
@@ -123,7 +124,7 @@ class Simple_RequestHandler(BaseHTTPRequestHandler):
                 print('action:  {}'.format(action), file=sys.stderr)
         except Exception as e:
             self.send_response(400)
-            self.send_header('Content-type','text/html')
+            self.send_header('Content-Type','text/html')
             self.end_headers()
             self.wfile.write(bytes(USE_MESSAGE, 'utf8'))
             return
@@ -136,7 +137,7 @@ class Simple_RequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
 
         # Send headers
-        self.send_header('Content-type','application/json')
+        self.send_header('Content-Type','application/json')
         self.end_headers()
 
         result=[]
@@ -152,13 +153,40 @@ class Simple_RequestHandler(BaseHTTPRequestHandler):
         return
  
  
-def run():
-    httpd_server = HTTPServer(DEFAULT_SERVER_ADDRESS, Simple_RequestHandler)
-    print('running server listening on {}...'.format(DEFAULT_SERVER_ADDRESS))
-    httpd_server.serve_forever()
-
 if '__main__' == __name__:
+    parser = argparse.ArgumentParser(
+        description='REST server for Etekcity Outlet controller')
+    parser.add_argument('-v', '--verbose', 
+                        help='increase output verbosity',
+                        action='store_true'
+                        )
+    parser.add_argument('--network_port',
+                        default=DEFAULT_LISTEN_PORT,
+                        help='network port for server 0-65535',
+                        type=int
+                        )
+    parser.add_argument('--network_address',
+                        default=DEFAULT_LISTEN_ADDRESS,
+                        help='network address for server in form of "x.x.x.x"'
+                        )
+    args = parser.parse_args()
+    
+    if args.verbose:
+        DEBUG = True
+    
+    if DEBUG:
+        print('verbose:  {}'.format(args.verbose), file=sys.stderr)
+        print('port:     {}'.format(args.network_port), file=sys.stderr)
+        print('address:  {}'.format(args.network_address), file=sys.stderr)
+    
+    server_address = (args.network_address, args.network_port)
+    if DEBUG:
+        print('server_address: "{}"'.format(server_address), file=sys.stderr)
+    
     try:
-        run()
+        httpd_server = HTTPServer(server_address, Simple_RequestHandler)
+        print('running server listening on {}...'.format(server_address))
+        httpd_server.serve_forever()
     except Exception as ex:
         print('caught "{}"'.format(ex))
+
