@@ -28,14 +28,14 @@ Very simple web server to control Etekcity relays using a 433 MHz transmitter
 connected to a Raspberry Pi pin.
 
 Send a JSON dictionary with keys of:
-  "addr" (0-255)
+  "address" (0-255)
   "unit" (1-5)
   "action" ("on"|"off")
   optional "pin" (valid board pin number)
 The default pin number is 18.
 
 try a curl command such as:
-  curl -H 'Content-Type: application/json' -X POST -d '{"addr":21, 
+  curl -H 'Content-Type: application/json' -X POST -d '{"address":21, 
     "unit":1, "action": "on"}'  http://localhost:11111/
 
 The server must run as root to have access to the GPIO pins.
@@ -58,7 +58,7 @@ DEFAULT_SERVER_ADDRESS = (DEFAULT_LISTEN_ADDRESS, DEFAULT_LISTEN_PORT)
 
 USE_MESSAGE = ('send a JSON dictionary with keys of '
                '<UL>'
-               '<LI>"addr" (0-255)'
+               '<LI>"address" (0-255)'
                '<LI>"unit" (1-5)'
                '<LI>"action" ("on"|"off")'
                '<LI>optional "pin" (valid board pin number)'
@@ -112,13 +112,13 @@ class Simple_RequestHandler(BaseHTTPRequestHandler):
             pin_num = DEFAULT_PIN
             if 'pin' in data:
                 pin_num = data['pin']
-            addr_num = data['addr']
+            address_num = data['address']
             unit_num = data['unit']
             action = data['action']
         
             if DEBUG:
                 print('pin:     {}'.format(pin_num), file=sys.stderr)
-                print('addr:    {}'.format(addr_num), file=sys.stderr)
+                print('address: {}'.format(address_num), file=sys.stderr)
                 print('unit:    {}'.format(unit_num), file=sys.stderr)
                 print('action:  {}'.format(action), file=sys.stderr)
         except Exception as e:
@@ -130,7 +130,7 @@ class Simple_RequestHandler(BaseHTTPRequestHandler):
 
         
         ec = Transmitter(pin_num)    
-        ec.transmit_action(addr_num, unit_num, action)
+        ec.transmit_action(address_num, unit_num, action)
 
         # Send response status code
         self.send_response(200)
@@ -143,7 +143,7 @@ class Simple_RequestHandler(BaseHTTPRequestHandler):
         sample = {}
         sample['status'] = 200
         sample['pin'] = pin_num
-        sample['addr'] = addr_num
+        sample['address'] = address_num
         sample['unit'] = unit_num
         sample['action'] = action
         result.append(sample)
