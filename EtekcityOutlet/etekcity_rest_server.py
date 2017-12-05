@@ -140,14 +140,12 @@ class Simple_RequestHandler(BaseHTTPRequestHandler):
         self.send_header('Content-Type','application/json')
         self.end_headers()
 
-        result=[]
-        sample = {}
-        sample['status'] = 200
-        sample['pin'] = pin_num
-        sample['address'] = address_num
-        sample['unit'] = unit_num
-        sample['action'] = action
-        result.append(sample)
+        result = {}
+        result['status'] = 200
+        result['pin'] = pin_num
+        result['address'] = address_num
+        result['unit'] = unit_num
+        result['action'] = action
 
         self.wfile.write(bytes(json.dumps(result, indent=1), "utf8"))
         return
