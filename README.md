@@ -11,7 +11,7 @@ An example would be: `sudo bash -c 'cd /opt ; git pull'`
   
 The devices attach to the Raspberry Pi in a variety of ways including:
 
-    Other GPIO pins (you pick, stay away predifined pins)
+    Other GPIO pins (you pick, stay away predefined pins)
     Etekcity Outlet controller connects to 3.3V, GND and Board pin 18
     
 Simple web servers are provided for the controllers.  By default these 
