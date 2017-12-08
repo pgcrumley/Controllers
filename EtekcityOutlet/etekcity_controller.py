@@ -59,6 +59,11 @@ class Transmitter:
     # last valid unit
     LAST_VALID_UNIT = 5
     
+    # special address for ALL_ON and ALL_OFF function
+    ALL_ADDRESS = 85
+    # special unit for ALL_ON and ALL_OFF function
+    ALL_UNIT = 3
+    
     VALID_PINS = [3, 5, 7, 8, 10, 
                   11, 12, 13, 15, 16, 18, 19, 
                   21, 22, 23, 24, 26, 29, 
@@ -228,12 +233,8 @@ class Transmitter:
             raise RuntimeError('etekcity_controller has been closed')
         
         for i in range(self.__retries):
-            self.transmit_on(85, 1)
-            self.transmit_on(85, 2)
-            self.transmit_on(85, 3)
-            self.transmit_on(85, 4)
-            self.transmit_on(85, 5)
-        
+            self.transmit_on(Transmitter.ALL_ADDRESS, Transmitter.ALL_UNIT)
+            
     def transmit_all_off(self):
         """
         Turn off all the relays. 
@@ -247,13 +248,11 @@ class Transmitter:
             raise RuntimeError('etekcity_controller has been closed')
         
         for i in range(self.__retries):
-            self.transmit_off(85, 1)
-            self.transmit_off(85, 2)
-            self.transmit_off(85, 3)
-            self.transmit_off(85, 4)
-            self.transmit_off(85, 5)
-        
-
+            self.transmit_off(Transmitter.ALL_ADDRESS, Transmitter.ALL_UNIT)
+    #
+    # end of class Transmitter        
+    #
+    
 def usage():
     print('usage:  Etekcity.py board_pin addr unit on|off',
           file=sys.stderr)    

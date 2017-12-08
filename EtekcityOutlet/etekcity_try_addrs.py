@@ -122,8 +122,16 @@ print('looking for addrs between {} and {}'.format(start, end))
 ec = Transmitter(TRANSMIT_PIN, retries=RETRY_COUNT)
 for addr in range(start, end+1):
     print('addr {}'.format(addr))
-    for unit in [1, 5, 3, 4, 2]: # odd order to avoid ALL_ON function
-        ec.transmit_on(addr, unit)
+    for unit in [1, 2, 3, 4, 5]:
+        if Transmitter.ALL_ADDRESS == addr and Transmitter.ALL_UNIT == unit:
+            print('skipping address {} and unit {} as they are special'.format(
+                Transmitter.addr, Transmitter.unit))
+        else:
+            ec.transmit_on(addr, unit)
     time.sleep(DELAY_TIME_IN_SECONDS)
-    for unit in [1, 5, 3, 4, 2]: # odd order to avoid ALL_OFF function
-        ec.transmit_off(addr, unit)
+    for unit in [1, 2, 3, 4, 5]:
+        if Transmitter.ALL_ADDRESS == addr and Transmitter.ALL_UNIT == unit:
+            print('skipping address {} and unit {} as they are special'.format(
+                Transmitter.addr, Transmitter.unit))
+        else:
+            ec.transmit_off(addr, unit)
