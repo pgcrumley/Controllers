@@ -10,26 +10,33 @@ In addition to the transmitter and device one also requires some
 [jumper wires](https://www.amazon.com/gp/product/B01LZF1ZSZ/)
 to connect the parts.
 
-The Outlet switches are identified by two numbers.  First is a device
+If you purchase the parts using the above links you will have 5 sets of
+transmitter / receiver boards (you only need one for the transmitter
+boards) and you will have lots or jumper wires (you only need 3 to 
+connect the transmitter to the Raspberry Pi and you may want to use an 
+additional wire as an antenna.
+
+The outlet switches are identified by two numbers.  First is a device
 address which ranges from 0 to 255.  All outlet switches in a single 
 package have the same address.
 
-While the devices in a package share an address, each has a unique unit 
+While the devices in a package share an address, each device has a unique unit 
 number which can 1 through 5.  With these two numbers software can use the
 transmitter to send patterns to the outlet switches on and off.
 
 This arrangement allows a Raspberry Pi to control powered devices without
 direct connections to hazardous voltages.
 
-Once the parts are availble one should be able to install and configure
+Once the parts are available one should be able to install and configure
 the software to control the outlets under an hour.  The steps include:
 
 * Install the software in the Raspberry Pi
 * Configure the software 
 * Plug in the outlet switches and make sure they work with the provided control.
 * Attach the transmitter to the Raspberry Pi.
+* Test the transmitter operation.
 * Determine the address for the outlet switches.
-* Start a simple web server which allows control via browser or REST
+* Configure REST server which allows control via browser or REST
 * Enjoy!
 
 
@@ -38,7 +45,7 @@ the software to control the outlets under an hour.  The steps include:
 The software and scripts assume the software is installed in `/opt`, a
 standard directory for "optional" software.  To install the software use
 
-`sudo /usr/bin/bash -c 'cd /opt ; git clone https://github.com/pgcrumley/Controllers.git ' `
+`sudo sh -c 'cd /opt ; git clone https://github.com/pgcrumley/Controllers.git'`
 
 This will place a copy of the software in `/opt` and leave behind
 information that makes it easy to retrieve updates later if needed.
@@ -50,7 +57,7 @@ a number of python and other scripts present.
 
 Install python3 and the RPi.GPIO library using a command of:
 
-`sudo apt-get install python3 TBD`
+`sudo apt-get -y install python3 python3-dev git python3-rpi.gpio`
 
 Make sure `python3` works and RPi.GPIO is installed by typing:
 
@@ -61,12 +68,11 @@ Make sure `python3` works and RPi.GPIO is installed by typing:
 Your console should look like this:
 
     $ python3
-    Python 3.6.1 (default, Mar 24 2017, 12:50:34)
-    [GCC 5.4.0] on cygwin
+    Python 3.4.2 (default, Oct 19 2014, 13:31:11)
+    [GCC 4.9.1] on linux
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import RPi.GPIO
     >>> exit()
-    
     $
 
 The version numbers may vary but there should not be any messages after the
@@ -92,7 +98,7 @@ outlet switches to verify they operate correctly before proceeding.
 When you are sure the outlets all work correctly it is time to let the 
 Raspberry Pi control them.
 
-Leave the outlet switches plugged in to a receptical so you are ready to
+Leave the outlet switches plugged in to a receptacle so you are ready to
 determine the address and test them after the transmitter is attached to
 the Raspberry Pi.
 
@@ -100,20 +106,21 @@ the Raspberry Pi.
 
 Three wires connect the transmitter to the Raspberry Pi.  The wires are
 
-Function | Color in picture | Raspberry Pi Pin Number | Pin Name
----- | ---- | -----
-3.3 volt power | Orange | 17 | GPIO 24
-Ground | Black | 20 | GND
-Signal | Yellow | 18 | 3.3V PWR
+| Function | Color in picture | Raspberry Pi Pin Number | Pin Name |
+| ---- | ---- | ----- |
+| 3.3 volt power | Orange | 17 | 3.3V PWR |
+| Signal | Blue | 18 | GPIO 24 |
+| Ground | Black | 20 | GND |
+
+You can choose different colors for the wires but be sure the correct
+pins are connected between the Raspberry Pi and the transmitter.
 
 Power down your Rapsberry Pi before making the connections with the GUI or 
-a command such as `sudo shutdown now`
+a command such as `sudo shutdown --poweroff now`
 
 Connect the transmitter to the Raspbery Pi as shown:
 
-![Connections](./images/connections.png)
-
-You can choose different colors for the wires.
+![Connections](./images/connections_2.png)
 
 Note that the pins on the connector start with 1 in the upper left position 
 and pin 2 is in the upper right location.  The pins in the next row down are
@@ -125,7 +132,8 @@ An image of the pins with pin numbers and names is available
 
 Please note that many of the pins have names such as "GPIO 12" or "GPIO 17".
 The number in the GPIO name tells how the pins are used by the hardware.
-Here we are using the pin numbers (not names) and the names simply refer to
+In this project we are using the 
+pin numbers (not names) and the numbers simply refer to
 the pins' location on the board, not what they do.  
 
 For this project we connect the `DATA` pin on the transmitter (yes, the 
@@ -135,16 +143,53 @@ pin number 18.  Pin 18 has a name of `GPIO 24`.
 Check the connections twice to be sure before proceeding.
 
 
-###Determine the address for the outlet switches. (10 minutes)
+###Test the transmitter operation. (5 minutes)
 
 Once the transmitter is connected power up your Raspberry Pi.  Login and 
-return to `/opt` with `cd /opt`
+return to `/opt/Controllers/Etekcity` 
+with `cd /opt/Controllers/Etekcity`
 
 Make sure the transmistter works by running the command:
 
-`sudo ./
+`sudo ./etekcity_all_on.py
 
-###Start a simple web server which allows control via browser or REST (5 minutes)
+All the outlet switches should turn on and the LEDs should be glowing red.
+
+If the switches do not turn on insert a jumper wire in to the hole on the 
+transmitter board labelled `ANT` as shown in 
+[this photo](./images/antenna.png).
+
+`sudo ./etekcity_all_off.py
+
+will turn all the devices off.
+
+If the devices do not turn on and off with these commands check all the 
+wiring.  If the wires look correct swap in one of the 4 other transmitter
+boards and try again.
+
+Turn off all the devices before proceeding.
+
+###Determine the address for the outlet switches. (10 minutes)
+
+This next command will cycle through all the addresses trying to turn each
+device on then off before proceeding to the next address.
+
+`sudo ./etekcity_try_addrs.py`
+
+Watch the screen so you see the address that turned the devices on then off.
+
+If you miss the exact address on which the devices respond you can run the 
+command with a first and last address to try on the command line.  Setting the 
+start and end address also slows down the process so you have more time to 
+see which address works for your devices.
+
+`sudo ./etekcity_try_addrs.py [first_address last_address]`
+
+To make sure you have the right address try the command with that address for
+both the `first_address` and the `last_address` to make sure the 
+device responds.
+
+###Configure REST server which allows control via browser or REST (5 minutes)
 
 
 

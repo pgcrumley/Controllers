@@ -57,7 +57,7 @@ if len(sys.argv) > 1:
               LAST_VALID_ADDR,
               file=sys.stderr
               )
-        print('    start must be < end', file=sys.stderr)
+        print('    start must be <= end', file=sys.stderr)
         print('    start and end default to {} and {}',
               FIRST_VALID_ADDR,
               LAST_VALID_ADDR,
@@ -112,8 +112,8 @@ if end < FIRST_VALID_ADDR or end > LAST_VALID_ADDR:
           )
     exit(2)
 
-if start >= end:
-    print('end_addr must be > start_addr', file=sys.stderr)
+if start > end:
+    print('start_addr must be <= end_addr', file=sys.stderr)
     exit(2)
 
 
@@ -122,8 +122,8 @@ print('looking for addrs between {} and {}'.format(start, end))
 ec = Transmitter(TRANSMIT_PIN, retries=RETRY_COUNT)
 for addr in range(start, end+1):
     print('addr {}'.format(addr))
-    for unit in [1, 2, 3, 4, 5]:
+    for unit in [1, 5, 3, 4, 2]: # odd order to avoid ALL_ON function
         ec.transmit_on(addr, unit)
     time.sleep(DELAY_TIME_IN_SECONDS)
-    for unit in [1, 2, 3, 4, 5]:
+    for unit in [1, 5, 3, 4, 2]: # odd order to avoid ALL_OFF function
         ec.transmit_off(addr, unit)

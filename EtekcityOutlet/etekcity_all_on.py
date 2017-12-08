@@ -41,12 +41,9 @@ RETRY_COUNT = 6
 
 if '__main__' == __name__:
     if len(sys.argv) > 1:
-        if (sys.argv[1] == '-h' 
-            or sys.argv[1] == '-?'
-            or sys.argv[1] == '--help'):
-            print('usage: etekcity_all_on.py', file=sys.stderr)
-            print('    Try to turn on all devices', file=sys.stderr)
-            exit(1)
+        print('usage: etekcity_all_on.py', file=sys.stderr)
+        print('    Try to turn on all devices', file=sys.stderr)
+        exit(1)
     
     ec = Transmitter(TRANSMIT_PIN, retries=RETRY_COUNT)
     ec.transmit_all_on()
