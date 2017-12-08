@@ -27,7 +27,7 @@
 Description=Run REST server for Etekcity outlet controller
 
 [Service]
-ExecStart=/opt/Controllers/Etekcity/etekcity_rest_server.py
+ExecStart=/opt/Controllers/EtekcityOutlet/etekcity_rest_server.py
 
 [Install]
 WantedBy=multi-user.target
