@@ -1,4 +1,4 @@
-#Sensors
+# Sensors
 
 This project holds code to control various devices which are
 attached to Raspberry Pi systems.
@@ -26,7 +26,7 @@ The default port numbers for the REST servers are:
 
   Port | Device
   -----: | -------
-  11111 | Etekcity Outlet Controller
+  11111 | [Etekcity Outlet](./Etekcity/) Controller
   22222 | GPIO on Arduino
   
   

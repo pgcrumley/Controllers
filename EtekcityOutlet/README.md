@@ -1,4 +1,4 @@
-#Etekcity Sensor Controller
+# Etekcity Sensor Controller
 
 This software, when used with a
 [433 MHz transmitter](https://www.amazon.com/gp/product/B017AYH5G0),
@@ -40,7 +40,7 @@ the software to control the outlets under an hour.  The steps include:
 * Enjoy!
 
 
-###Install the software in the Raspberry Pi (5 minutes)
+### Install the software in the Raspberry Pi (5 minutes)
 
 The software and scripts assume the software is installed in `/opt`, a
 standard directory for "optional" software.  To install the software use
@@ -53,7 +53,7 @@ information that makes it easy to retrieve updates later if needed.
 Next `cd /opt/Controllers/Etekcity/` and make sure there are
 a number of python and other scripts present.
 
-###Configure the software (15 minutes -- longer if system is not up-to-date)
+### Configure the software (15 minutes -- longer if system is not up-to-date)
 
 Install python3 and the RPi.GPIO library using a command of:
 
@@ -78,7 +78,7 @@ Your console should look like this:
 The version numbers may vary but there should not be any messages after the
 `import RPi.GPIO` line.    
 
-###Plug in the outlet switches and make sure they work with the provided control. (5 minutes)
+### Plug in the outlet switches and make sure they work with the provided control. (5 minutes)
 
 Unpack the outlet switches and install the battery in the included remote.
 Plug one or more of the outlet switches in to a wall outlet and make sure 
@@ -102,7 +102,7 @@ Leave the outlet switches plugged in to a receptacle so you are ready to
 determine the address and test them after the transmitter is attached to
 the Raspberry Pi.
 
-###Attach the transmitter to the Raspberry Pi. (10 minutes)
+### Attach the transmitter to the Raspberry Pi. (10 minutes)
 
 Three wires connect the transmitter to the Raspberry Pi.  The wires are
 
@@ -143,7 +143,7 @@ pin number 18.  Pin 18 has a name of `GPIO 24`.
 Check the connections twice to be sure before proceeding.
 
 
-###Test the transmitter operation. (5 minutes)
+### Test the transmitter operation. (5 minutes)
 
 Once the transmitter is connected power up your Raspberry Pi.  Login and 
 return to `/opt/Controllers/Etekcity` 
@@ -169,7 +169,7 @@ boards and try again.
 
 Turn off all the devices before proceeding.
 
-###Determine the address for the outlet switches. (10 minutes)
+### Determine the address for the outlet switches. (10 minutes)
 
 This next command will cycle through all the addresses trying to turn each
 device on then off before proceeding to the next address.
@@ -191,7 +191,7 @@ To make sure you have the right address try the command with that address for
 both the `first_address` and the `last_address` to make sure the 
 device responds.
 
-###Configure REST server which allows control via browser or REST (5 minutes)
+### Configure REST server which allows control via browser or REST (5 minutes)
 
 If you want to use the REST server to control the devices you can have 
 that server configured to start automatically each time the system is 
@@ -244,7 +244,7 @@ the same host but you can change the way the server is started by altering the
 can send a REST command.  To do this add `--network_address 0.0.0.0`
 to the end of the command and restart.
 
-###Enjoy! 
+### Enjoy! 
 
 
 
