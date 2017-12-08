@@ -178,6 +178,8 @@ device on then off before proceeding to the next address.
 
 Watch the screen so you see the address that turned the devices on then off.
 
+Please note that address 85 with unit 3 is special and will be skipped.
+
 If you miss the exact address on which the devices respond you can run the 
 command with a first and last address to try on the command line.  Setting the 
 start and end address also slows down the process so you have more time to 
@@ -191,7 +193,56 @@ device responds.
 
 ###Configure REST server which allows control via browser or REST (5 minutes)
 
+If you want to use the REST server to control the devices you can have 
+that server configured to start automatically each time the system is 
+started.
 
+To do this a configuration file is copied to the `/lib/systemd/system`
+directory then the service is enabled to start automatically.  You can 
+also start the service immediately without rebooting the system.
+
+To set up the facility use
+
+    sudo cp etekcity_rest_server.service /lib/systemd/system
+    sudo systemctl enable etekcity_rest_server.service
+
+You can start the service without rebooting by typing 
+
+    sudo systemctl start etekcity_rest_server.service
+
+Finally, you can check the status of the service with 
+
+    sudo systemctl status -l etekcity_rest_server.service
+    
+This last command should provide out similar to 
+
+    o etekcity_rest_server.service - Run REST server for Etekcity outlet controller
+       Loaded: loaded (/lib/systemd/system/etekcity_rest_server.service; enabled)
+       Active: active (running) since Thu 2017-12-07 22:41:08 EST; 8s ago
+     Main PID: 2438 (python3)
+       CGroup: /system.slice/etekcity_rest_server.service
+               \- 2438 python3 /opt/Controllers/EtekcityOutlet/etekcity_rest_server.py
+    
+    Dec 07 22:41:08 rpi-214 systemd[1|: Started Run REST server for Etekcity outlet controller.
+
+You can now control one of the devices with this command
+
+    curl -H 'Content-Type: application/json' -X POST -d '{"address":21,  "unit":2, "action": "on"}'  http://localhost:11111/
+
+The above command turns on the device with unit number of 2 at address 21.  
+Use the address you determined above and select a unit number between 
+1 and 5 for the device you want to control.  Change "on" to "off" to turn the
+device off.
+
+Notice the above command does not need the `sudo` command.  You do not need
+root access to send the REST commands to the server.  This allows many
+programs to share the devices.
+
+By default the REST server only responds to requests which are sent from 
+the same host but you can change the way the server is started by altering the 
+`StartExec` line in the `.service` file so any host on your network
+can send a REST command.  To do this add `--network_address 0.0.0.0`
+to the end of the command and restart.
 
 ###Enjoy! 
 
