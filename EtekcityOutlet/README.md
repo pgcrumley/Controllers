@@ -107,7 +107,7 @@ the Raspberry Pi.
 Three wires connect the transmitter to the Raspberry Pi.  The wires are
 
 | Function | Color in picture | Raspberry Pi Pin Number | Pin Name |
-| ---- | ---- | ----- |
+| ---- | ---- | ----- | ----- | 
 | 3.3 volt power | Orange | 17 | 3.3V PWR |
 | Signal | Blue | 18 | GPIO 24 |
 | Ground | Black | 20 | GND |
