@@ -254,11 +254,11 @@ class Transmitter:
     #
     
 def usage():
-    print('usage:  Etekcity.py board_pin addr unit on|off',
+    print('usage:  Etekcity.py board_pin address unit on|off',
           file=sys.stderr)    
     print('          board_pin is the pin connected to the transmitter',
           file=sys.stderr)    
-    print('          addr is a 2 digit hex number',
+    print('          address is a number from 0 to 255 inclusive',
           file=sys.stderr)    
     print('          unit is a number between 1 and 5 inclusive',
           file=sys.stderr)    
@@ -298,11 +298,11 @@ if '__main__' == __name__ :
                   file=sys.stderr)
             usage()
             
-        addr = int(sys.argv[2], 16)
+        addr = int(sys.argv[2])
         if DEBUG:
-            print('addr:       {}'.format(addr))
+            print('address:    {}'.format(addr))
         if (0 > addr) or (255 < addr):
-            print('addr of {} is not in {}'.format(addr, range(0,256)),
+            print('address of {} is not >= 0 and <= 255'.format(addr),
                   file=sys.stderr)
             usage()
         
@@ -335,7 +335,7 @@ if '__main__' == __name__ :
 
     if DEBUG:
         print('board_pin:  {}'.format(board_pin), file=sys.stderr)
-        print('addr:       {}'.format(addr), file=sys.stderr)
+        print('address:    {}'.format(addr), file=sys.stderr)
         print('unit:       {}'.format(unit), file=sys.stderr)
         print('action:     {}'.format(action), file=sys.stderr)
     

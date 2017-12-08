@@ -21,14 +21,15 @@ address which ranges from 0 to 255.  All outlet switches in a single
 package have the same address.
 
 While the devices in a package share an address, each device has a unique unit 
-number which can 1 through 5.  With these two numbers software can use the
-transmitter to send patterns to the outlet switches on and off.
+number from 1 through 5.  With these two numbers software can use the
+transmitter to send signals to turn the outlet switches on and off.
 
 This arrangement allows a Raspberry Pi to control powered devices without
 direct connections to hazardous voltages.
 
-Once the parts are available one should be able to install and configure
-the software to control the outlets under an hour.  The steps include:
+Once the parts are available one should be able to
+a Raspberry Pi to a transmitter and configure
+the software to control the outlets in under an hour.  The steps include:
 
 * Install the software in the Raspberry Pi
 * Configure the software 
@@ -36,7 +37,8 @@ the software to control the outlets under an hour.  The steps include:
 * Attach the transmitter to the Raspberry Pi.
 * Test the transmitter operation.
 * Determine the address for the outlet switches.
-* Configure REST server which allows control via browser or REST
+* Use the controller command to turn devices on and off.
+* (optional) Configure REST server which allows control via browser or REST.
 * Enjoy!
 
 
@@ -82,7 +84,7 @@ The version numbers may vary but there should not be any messages after the
 
 Unpack the outlet switches and install the battery in the included remote.
 Plug one or more of the outlet switches in to a wall outlet and make sure 
-the devices switch on and off when you use the remote control.  You can
+the devices switch on and off when you use the remote control.
 
 When the outlet switch is "on" a red light will illuminate as shown below:
 
@@ -118,6 +120,9 @@ pins are connected between the Raspberry Pi and the transmitter.
 Power down your Rapsberry Pi before making the connections with the GUI or 
 a command such as `sudo shutdown --poweroff now`
 
+Wait a few second for the LED activity to stop then disconnect power from the
+Raspberry Pi.
+
 Connect the transmitter to the Raspbery Pi as shown:
 
 ![Connections](./images/connections_2.png)
@@ -142,6 +147,12 @@ pin number 18.  Pin 18 has a name of `GPIO 24`.
 
 Check the connections twice to be sure before proceeding.
 
+Please be careful to not let the transmitter board come in contact with 
+the Raspberry Pi when the devices are powered.  There are voltages present
+on both cards which can cause damage if the voltages come in contact with 
+delicate parts.  It migth be a good idea to wrap the transmitter card with
+some tape or other non-conductive material (e.g. light cardboard, plastic 
+bag) to prevent damage.
 
 ### Test the transmitter operation. (5 minutes)
 
@@ -151,15 +162,17 @@ with `cd /opt/Controllers/Etekcity`
 
 Make sure the transmistter works by running the command:
 
-`sudo ./etekcity_all_on.py
+`sudo ./etekcity_all_on.py`
 
 All the outlet switches should turn on and the LEDs should be glowing red.
 
 If the switches do not turn on insert a jumper wire in to the hole on the 
 transmitter board labelled `ANT` as shown in 
-[this photo](./images/antenna.png).
+[this photo](./images/antenna.png).  The wire will provide more strength
+to the transmitted signal improving the reliability and distance between
+the transmitter and the devices.
 
-`sudo ./etekcity_all_off.py
+`sudo ./etekcity_all_off.py`
 
 will turn all the devices off.
 
@@ -169,7 +182,7 @@ boards and try again.
 
 Turn off all the devices before proceeding.
 
-### Determine the address for the outlet switches. (10 minutes)
+### Determine the address for the outlet switches. (5 minutes)
 
 This next command will cycle through all the addresses trying to turn each
 device on then off before proceeding to the next address.
@@ -181,7 +194,7 @@ Watch the screen so you see the address that turned the devices on then off.
 Please note that address 85 with unit 3 is special and will be skipped.
 
 If you miss the exact address on which the devices respond you can run the 
-command with a first and last address to try on the command line.  Setting the 
+command with parameters to set the first and last address to try.  Setting the 
 start and end address also slows down the process so you have more time to 
 see which address works for your devices.
 
@@ -191,7 +204,24 @@ To make sure you have the right address try the command with that address for
 both the `first_address` and the `last_address` to make sure the 
 device responds.
 
-### Configure REST server which allows control via browser or REST (5 minutes)
+### Use the controller command to turn devices on and off. (2 minutes)
+
+You can control devices with the the `etekcity_controller.py` command.
+This command takes 4 parameters of the `transmitter pin`, 
+`address`, `unit`, and `on` | `off`
+
+This requires root authority so the program can control the hardware pins.
+An example of a command to turn on a device is
+
+`sudo ./etekcity_controller.py 18 21 2 on`
+
+which will turn on the device with an address of 21 and a unit number of 2.
+
+You can control the devices with commands called from other programs or 
+scripts.  If you want more flexibility you can run a REST server which allows
+the devices to be controlled by a wide range of programs and commands. 
+
+### (optional) Configure REST server which allows control via browser or REST. (5 minutes)
 
 If you want to use the REST server to control the devices you can have 
 that server configured to start automatically each time the system is 
