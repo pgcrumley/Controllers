@@ -125,13 +125,13 @@ for addr in range(start, end+1):
     for unit in [1, 2, 3, 4, 5]:
         if Transmitter.ALL_ADDRESS == addr and Transmitter.ALL_UNIT == unit:
             print('skipping address {} and unit {} as they are special'.format(
-                Transmitter.addr, Transmitter.unit))
+                Transmitter.ALL_ADDRESS, Transmitter.ALL_UNIT))
         else:
             ec.transmit_on(addr, unit)
     time.sleep(DELAY_TIME_IN_SECONDS)
     for unit in [1, 2, 3, 4, 5]:
         if Transmitter.ALL_ADDRESS == addr and Transmitter.ALL_UNIT == unit:
             print('skipping address {} and unit {} as they are special'.format(
-                Transmitter.addr, Transmitter.unit))
+                Transmitter.ALL_ADDRESS, Transmitter.ALL_UNIT))
         else:
             ec.transmit_off(addr, unit)
