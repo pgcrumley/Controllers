@@ -1,4 +1,4 @@
-# Etekcity Sensor Controller
+# Etekcity Electric Outlet Controller
 
 This software, when used with a
 [433 MHz transmitter](https://www.amazon.com/gp/product/B017AYH5G0),
@@ -47,19 +47,23 @@ the software to control the outlets in under an hour.  The steps include:
 The software and scripts assume the software is installed in `/opt`, a
 standard directory for "optional" software.  To install the software use
 
-`sudo sh -c 'cd /opt ; git clone https://github.com/pgcrumley/Controllers.git'`
+    sudo sh -c 'cd /opt ; git clone https://github.com/pgcrumley/Controllers.git'
 
 This will place a copy of the software in `/opt` and leave behind
 information that makes it easy to retrieve updates later if needed.
 
-Next `cd /opt/Controllers/Etekcity/` and make sure there are
+Next 
+
+    cd /opt/Controllers/Etekcity/
+    
+and make sure there are
 a number of python and other scripts present.
 
 ### Configure the software (15 minutes -- longer if system is not up-to-date)
 
 Install python3 and the RPi.GPIO library using a command of:
 
-`sudo apt-get -y install python3 python3-dev git python3-rpi.gpio`
+    sudo apt-get -y install python3 python3-dev git python3-rpi.gpio
 
 Make sure `python3` works and RPi.GPIO is installed by typing:
 
@@ -118,7 +122,9 @@ You can choose different colors for the wires but be sure the correct
 pins are connected between the Raspberry Pi and the transmitter.
 
 Power down your Rapsberry Pi before making the connections with the GUI or 
-a command such as `sudo shutdown --poweroff now`
+a command such as
+
+    sudo shutdown --poweroff now
 
 Wait a few second for the LED activity to stop then disconnect power from the
 Raspberry Pi.
@@ -162,7 +168,7 @@ with `cd /opt/Controllers/Etekcity`
 
 Make sure the transmistter works by running the command:
 
-`sudo ./etekcity_all_on.py`
+    sudo ./etekcity_all_on.py
 
 All the outlet switches should turn on and the LEDs should be glowing red.
 
@@ -172,7 +178,7 @@ transmitter board labelled `ANT` as shown in
 to the transmitted signal improving the reliability and distance between
 the transmitter and the devices.
 
-`sudo ./etekcity_all_off.py`
+    sudo ./etekcity_all_off.py
 
 will turn all the devices off.
 
@@ -198,7 +204,7 @@ command with parameters to set the first and last address to try.  Setting the
 start and end address also slows down the process so you have more time to 
 see which address works for your devices.
 
-`sudo ./etekcity_try_addrs.py [first_address last_address]`
+    sudo ./etekcity_try_addrs.py [first_address last_address]
 
 To make sure you have the right address try the command with that address for
 both the `first_address` and the `last_address` to make sure the 
@@ -213,7 +219,7 @@ This command takes 4 parameters of the `transmitter pin`,
 This requires root authority so the program can control the hardware pins.
 An example of a command to turn on a device is
 
-`sudo ./etekcity_controller.py 18 21 2 on`
+    sudo ./etekcity_controller.py 18 21 2 on
 
 which will turn on the device with an address of 21 and a unit number of 2.
 

@@ -1,4 +1,4 @@
-# Sensors
+# Controllers
 
 This project holds code to control various devices which are
 attached to Raspberry Pi systems.
