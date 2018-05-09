@@ -29,4 +29,6 @@ The default port numbers for the REST servers are:
   11111 | [Etekcity Outlet](./Etekcity/) Controller
   22222 | GPIO on Arduino
   
+  Note:  The REST server for GPIO on Arduino is not available at this time
+  
   
