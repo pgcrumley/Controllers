@@ -6,12 +6,11 @@ most GPIO pins on the Arduino.  (pins 0 and 1 are used by the serial
 port function)  
 
 Since the Arduino gets power from the USB connection no
-extra power supply is needed.  It is also possible to connect many Arduinos
-to a Raspberry Pi which can increase the number and distance between
-ports. 
+extra power supply is needed.  This arrangement allows a Raspberry Pi to 
+control powered devices with a less
+direct connection to hazardous voltages.
 
-This arrangement allows a Raspberry Pi to control powered devices with a less
-direct connection to hazardous voltages.  It also can allow longer distances
+The use of USB allows longer distances
 between the Raspberry Pi and the controlled device.  (some extenders can 
 reach 100 meters).  One may also have many GPIO ports on a single Raspberry
 Pi by connecting many Arduinos (each supports 12 GPIO pins) to USB ports.
