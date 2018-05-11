@@ -11,7 +11,10 @@ to a Raspberry Pi which can increase the number and distance between
 ports. 
 
 This arrangement allows a Raspberry Pi to control powered devices with a less
-direct connection to hazardous voltages.  It also can allow s
+direct connection to hazardous voltages.  It also can allow longer distances
+between the Raspberry Pi and the controlled device.  (some extenders can 
+reach 100 meters).  One may also have many GPIO ports on a single Raspberry
+Pi by connecting many Arduinos (each supports 12 GPIO pins) to USB ports.
 
 The python code provides a simple interface to the functions, allowing one
 to set a pin HIGH (which is really putting the pin in INPUT_PULLUP mode) or

@@ -47,6 +47,7 @@ Very simple commands:  'a-n', 'A-N', '?', '+'
     For example an UNO returns "cdefghijklmn\n" as only those pins are supported
     since pins 0 and 1 are used for the serial port leaving pins 2-13.
   + sets the current state of the outputs to the POWER-ON state.
+  ` returns the version of the code, starting with 0
 
 Everything else received is ignored.
 
@@ -61,6 +62,8 @@ NOTE: This will work for first 14 pins on Arduino cards with more than 14 pins.
 /*                           c  d  e  f  g  h  i  j   k   l   m   n */
 const byte PINS_TO_USE[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
 /* pins 0 & 1 are used for serial communication so may not be altered */
+
+const char VERSION = '0';
 
 /*
  Set the value for a pin.
@@ -138,6 +141,10 @@ void loop(void) {
     }
     if ('+' == c) {
         saveValues();
+        return;
+    }
+    if ('`' == c) {
+        Serial.println(VERSION);
         return;
     }
 
