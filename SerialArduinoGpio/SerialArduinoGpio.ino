@@ -39,7 +39,11 @@ projects that safely use the pins as inputs with new cards.
 
 Other values for the initial state can be saved with the '+' command.
 
+The analog pins can also be read with commands of '0'-'7'.  The value
+read (0-1023) will be returned.
+
 Very simple commands:  'a-n', 'A-N', '?', '+'
+  0-7 return the value of the named analog input pin
   c-n set pin 2-13 LOW and return nothing
   C-N set pin 2-13 HIGH (mode INPUT_PULLUP) and return nothing
   ? returns "xxx...xxx\n" where each x is a lower or UPPER case letter in the
@@ -108,6 +112,14 @@ void sendValues() {
 } // sendValues
 
 /*
+ Send back a string with the analog value of a pin.
+ */
+void sendAnalog(int pin) {
+    int value = analogRead(pin);
+    Serial.println(value);
+} // sendAnalog(int pin)
+
+/*
  Save current pin states for use at next power on.
  */
 void saveValues() {
@@ -137,6 +149,11 @@ void loop(void) {
     }
     if ('?' == c) {
         sendValues();
+        return;
+    }
+    /* read analog inputs */
+    if (('0' <= c) && ('7' >= c)) {
+        sendAnalog(c-'0');
         return;
     }
     if ('+' == c) {
