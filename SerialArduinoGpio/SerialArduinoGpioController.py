@@ -33,26 +33,37 @@ The GPIOs can be read which returns a map of pin_number:value.
 The current output state can be stored in EEPROM and will be loaded at
 power-on / reset in the future.
 
-This code must run as root to access the serial ports.
+This code must run as root to access the serial ports on some systems.
 """
 
-import glob
-import serial
-import sys
 import time
 
-import RPi.GPIO as GPIO
+import serial
+import serial.tools.list_ports
 
 DEBUG = 0
 
-SERIAL_FILENAME_GLOBS = ('/dev/ttyUSB*', '/dev/ttyACM*')
+# remove these devices from list
+FILTERED_DEVICES = ['COM1', 'COM2', 'COM3', 'COM4', 
+                    '/dev/ttyAMA0']
+
 PORT_SPEED = 115200
+TIMEOUT_IN_SEC = 5.0
 VALID_GPIO_PINS = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
 
 NL = '\n'.encode('UTF-8')
 READ_COMMAND = '?'.encode('UTF-8')
 SAVE_COMMAND = '+'.encode('UTF-8')
-
+VERSION_COMMAND = '`'.encode('UTF-8')
+GET_ANALOG_PIN_COMMAND = ['0'.encode('UTF-8'),
+                          '1'.encode('UTF-8'),
+                          '2'.encode('UTF-8'),
+                          '3'.encode('UTF-8'),
+                          '4'.encode('UTF-8'),
+                          '5'.encode('UTF-8'),
+                          '6'.encode('UTF-8'),
+                          '7'.encode('UTF-8')
+                          ]
 class SerialArduinoGpioController:
     '''
     This class allows an Arduino on a Raspberry Pi serial port to used
@@ -67,10 +78,22 @@ class SerialArduinoGpioController:
         string such as ACM# or USB#
         '''
         self._name = serial_port;
-        self._port = serial.Serial(serial_port, PORT_SPEED)
+        self._port = serial.Serial(serial_port, 
+                                   PORT_SPEED, 
+                                   timeout=TIMEOUT_IN_SEC)
+        #if DEBUG:
+        #    print(self._port.get_settings())
+           
         # give Arduino time to reset after serial open which causes a reset
         time.sleep(3)  
-        values = self.get_pins()
+
+        try:
+            self._version = self.read_version()
+        except:
+            self._version = None
+        if DEBUG:
+            print('created SerialArduinoGpioController for "{}"'.format(serial_port))
+            print('found version of {}'.format(self._version))
 
 
     def get_name(self):
@@ -80,6 +103,23 @@ class SerialArduinoGpioController:
         return self._name
     
     
+    def get_version(self):
+        '''
+        return the version of the code running in the Arduino.
+        '''
+        return self._version
+
+    def read_version(self):
+        '''
+        return the version of the code running in the Arduino.
+        '''
+        self._port.write(VERSION_COMMAND)
+        self._port.flush()
+        l = self._port.readline().decode('UTF-8').strip()
+        # return what we get from the Arduino
+        return int(l)
+
+
     def set_pin(self, pin, value):
         '''
         Set a GPIO pin to HIGH (INPUT mode with PULLUP) or LOW.
@@ -92,15 +132,16 @@ class SerialArduinoGpioController:
             c = chr(ord('a') + pin)
         self._port.write(c.encode('UTF-8'))
         self._port.flush()
+        return
                         
 
-    def get_pins(self):
+    def read_pin_values(self):
         '''
         read the pin values and return a map of {pin:value}
         '''
         self._port.write(READ_COMMAND)
         self._port.flush()
-        l = self._port.readline().decode('UTF-8')
+        l = self._port.readline().decode('UTF-8').strip()
         if DEBUG:
             print('line: "{}"'.format(l))  # don't need a \n
 
@@ -129,8 +170,7 @@ class SerialArduinoGpioController:
             elif c == 'm': result[12] = 0
             elif c == 'M': result[12] = 1
             elif c == 'n': result[13] = 0
-            elif c == 'N': result[13] = 1
-                    
+            elif c == 'N': result[13] = 1     
         return result
 
 
@@ -143,6 +183,32 @@ class SerialArduinoGpioController:
         return
 
 
+    def read_analog_value(self, pin):
+        '''
+        Retrieve the analog value for a given pin.
+        
+        Return 0-1023.
+        '''
+        if ((pin < 0) or (pin > 7)):
+            raise IndexError('valid analog pins are 0 to 7')
+        
+        self._port.write(GET_ANALOG_PIN_COMMAND[pin])
+        self._port.flush()
+        l = self._port.readline().decode('UTF-8').strip()
+        if DEBUG:
+            print('line: "{}"'.format(l))  # don't need a \n
+        # return what we get from the Arduino
+        return int(l)
+    
+    def read_analog_values(self):
+        '''
+        return a map with all analog pin values
+        '''
+
+        result = {}
+        for a_pin in range(8):
+            result[a_pin] = self.read_analog_value(a_pin)
+        return result
 
 #
 # main
@@ -150,37 +216,26 @@ class SerialArduinoGpioController:
 if __name__ == "__main__":
     
     # this will hold the names of serial port devices which might have Arduino
-    serial_devices = [] 
-    for g in SERIAL_FILENAME_GLOBS:
-        serial_devices.extend(glob.glob(g))
+    serial_devices = [comport.device for comport in serial.tools.list_ports.comports()]
+    filtered_devices = []
+    for d in serial_devices:
+        if d not in FILTERED_DEVICES:
+            filtered_devices.append(d)
+        else:
+            print('removed "{}" from device list'.format(d))
     if DEBUG:
-        print('available devices include:  {}\n'.format(serial_devices))
+        print('available devices include:  {}\n'.format(filtered_devices))
 
     # get serial port access for each serial device
-    controllers = set()
-    for s in serial_devices:
-        controllers.add(SerialArduinoGpioController(s))
-    
-    # Find the serial port(s) that holds the water pipe sensors
-    for p in controllers:
-        print('reading pins {}: {}\n'.format(p.get_name(), p.get_pins()))
-
-    # Find the serial port(s) that holds the water pipe sensors
-    for p in controllers:
-        print('set pin 5 on {} LOW\n'.format(p.get_name(), p.set_pin(5, 0)))
-
-    # Find the serial port(s) that holds the water pipe sensors
-    for p in controllers:
-        print('reading pins {}: {}\n'.format(p.get_name(), p.get_pins()))
-
-    # Find the serial port(s) that holds the water pipe sensors
-    for p in controllers:
-        print('set pin 5 on {} HIGH\n'.format(p.get_name(), p.set_pin(5, 1)))
-
-    # Find the serial port(s) that holds the water pipe sensors
-    for p in controllers:
-        print('reading pins {}: {}\n'.format(p.get_name(), p.get_pins()))
-
-    # Find the serial port(s) that holds the water pipe sensors
-    for p in controllers:
-        print('saving reset state of {}\n'.format(p.get_name(), p.save_pins()))
+    for s in filtered_devices:
+        p = SerialArduinoGpioController(s)
+        print('made controller for "{}"'.format(s))
+        # exercise this port if version > 0
+        if p._version >= 0:
+            print('controller "{}":'.format(p.get_name()))
+            print('  code version is {}'.format(p.get_version()))
+            print('  reading pins gives "{}"'.format(p.read_pin_values()))
+            print('  analog values are {}'.format(p.read_analog_values()))
+        
+        print('\n')
+        
