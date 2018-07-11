@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#! env python
 """
 MIT License
 
@@ -36,6 +36,7 @@ power-on / reset in the future.
 This code must run as root to access the serial ports on some systems.
 """
 
+import sys
 import time
 
 import serial
@@ -43,12 +44,15 @@ import serial.tools.list_ports
 
 DEBUG = 0
 
-# remove these devices from list
-FILTERED_DEVICES = ['COM1', 'COM2', 'COM3', 'COM4', 
-                    '/dev/ttyAMA0']
+# remove these devices from list -- this list is ad hoc
+# probably best to put the port names on the command line
+FILTERED_DEVICES = ['COM1', 'COM2', 'COM3', 'COM4', # windows seems to use these
+                    'COM5', 'COM6', 'COM7', 'COM8', # windows seems to use these
+                    '/dev/ttyAMA0'] # raspberry pi console
 
 PORT_SPEED = 115200
-TIMEOUT_IN_SEC = 5.0
+TIMEOUT_IN_SEC = 2.0
+RESET_TIME_IN_SEC = 3.0
 VALID_GPIO_PINS = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
 
 NL = '\n'.encode('UTF-8')
@@ -85,21 +89,46 @@ class SerialArduinoGpioController:
         #    print(self._port.get_settings())
            
         # give Arduino time to reset after serial open which causes a reset
-        time.sleep(3)  
-
+        time.sleep(RESET_TIME_IN_SEC)  
+        v='<TBD>'
         try:
-            self._version = self.read_version()
+            self._port.write(VERSION_COMMAND)
+            self._port.flush()
+            v = self._port.readline().decode('UTF-8').strip()
+            self._version = int(v)
         except:
             self._version = None
+            raise RuntimeError('invalid version of "{}" received from device'.format(v))
         if DEBUG:
             print('created SerialArduinoGpioController for "{}"'.format(serial_port))
             print('found version of {}'.format(self._version))
 
 
+    def is_active(self):
+        '''
+        return True if device is active / usable
+        '''
+        return self._version is not None
+
+    
+    def close(self):
+        '''
+        release resources. 
+        
+        After this call is_active() will return False.
+        '''
+        if self.is_active():
+            self._port.close()
+            self._version = None
+
+    
     def get_name(self):
         '''
         return the serial device name
         '''
+        if not self.is_active():
+            raise RuntimeError('get_name() called on inactive controller')
+
         return self._name
     
     
@@ -107,23 +136,19 @@ class SerialArduinoGpioController:
         '''
         return the version of the code running in the Arduino.
         '''
+        if not self.is_active():
+            raise RuntimeError('get_verion() called on inactive controller')
+        
         return self._version
-
-    def read_version(self):
-        '''
-        return the version of the code running in the Arduino.
-        '''
-        self._port.write(VERSION_COMMAND)
-        self._port.flush()
-        l = self._port.readline().decode('UTF-8').strip()
-        # return what we get from the Arduino
-        return int(l)
 
 
     def set_pin(self, pin, value):
         '''
         Set a GPIO pin to HIGH (INPUT mode with PULLUP) or LOW.
         '''
+        if not self.is_active():
+            raise RuntimeError('set_pin() called on inactive controller')
+
         if pin not in VALID_GPIO_PINS:
             raise ValueError('pin value of {} is not in {}'.format(pin, VALID_GPIO_PINS))
         if value:
@@ -139,6 +164,9 @@ class SerialArduinoGpioController:
         '''
         read the pin values and return a map of {pin:value}
         '''
+        if not self.is_active():
+            raise RuntimeError('read_pin_values() called on inactive controller')
+
         self._port.write(READ_COMMAND)
         self._port.flush()
         l = self._port.readline().decode('UTF-8').strip()
@@ -178,6 +206,9 @@ class SerialArduinoGpioController:
         '''
         Save the current output pin values so they are reloaded at reset
         '''
+        if not self.is_active():
+            raise RuntimeError('save_pins() called on inactive controller')
+
         self._port.write(SAVE_COMMAND)
         self._port.flush()
         return
@@ -189,6 +220,9 @@ class SerialArduinoGpioController:
         
         Return 0-1023.
         '''
+        if not self.is_active():
+            raise RuntimeError('read_analog_value() called on inactive controller')
+
         if ((pin < 0) or (pin > 7)):
             raise IndexError('valid analog pins are 0 to 7')
         
@@ -204,6 +238,8 @@ class SerialArduinoGpioController:
         '''
         return a map with all analog pin values
         '''
+        if not self.is_active():
+            raise RuntimeError('read_analog_values() called on inactive controller')
 
         result = {}
         for a_pin in range(8):
@@ -215,21 +251,30 @@ class SerialArduinoGpioController:
 #
 if __name__ == "__main__":
     
-    # this will hold the names of serial port devices which might have Arduino
-    serial_devices = [comport.device for comport in serial.tools.list_ports.comports()]
     filtered_devices = []
-    for d in serial_devices:
-        if d not in FILTERED_DEVICES:
-            filtered_devices.append(d)
-        else:
-            print('removed "{}" from device list'.format(d))
-    if DEBUG:
-        print('available devices include:  {}\n'.format(filtered_devices))
+    # use list from command line if provided
+    if len(sys.argv) > 1:
+        filtered_devices = sys.argv[1:]
+    # otherwise look for possible devices to try
+    else:
+        # this will hold the names of serial port devices which might have Arduino
+        serial_devices = [comport.device for comport in serial.tools.list_ports.comports()]
+        for d in serial_devices:
+            if d not in FILTERED_DEVICES:
+                filtered_devices.append(d)
+            else:
+                print('removed "{}" from device list'.format(d))
+        if DEBUG:
+            print('found devices include:  {}\n'.format(filtered_devices))
 
     # get serial port access for each serial device
     for s in filtered_devices:
+        print('trying {}'.format(s))
         p = SerialArduinoGpioController(s)
         print('made controller for "{}"'.format(s))
+        if not p.is_active():
+            print('CONTROLLER DOES NOT CLAIM TO BE ACTIVE AFTER CREATION!!')
+
         # exercise this port if version > 0
         if p._version >= 0:
             print('controller "{}":'.format(p.get_name()))
@@ -237,5 +282,8 @@ if __name__ == "__main__":
             print('  reading pins gives "{}"'.format(p.read_pin_values()))
             print('  analog values are {}'.format(p.read_analog_values()))
         
+        p.close()
+        if p.is_active():
+            print('CONTROLLER IS STILL CLAIMING TO BE ACTIVE AFTER CLOSE()!!')
+
         print('\n')
-        
