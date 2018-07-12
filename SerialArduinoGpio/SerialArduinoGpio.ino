@@ -56,6 +56,11 @@ Very simple commands:  'a-n', 'A-N', '?', '+'
 Everything else received is ignored.
 
 NOTE: This will work for first 14 pins on Arduino cards with more than 14 pins.
+
+Version
+0		initial version
+1		added analog capability
+
  */
 #include <EEPROM.h>
 
@@ -67,7 +72,7 @@ NOTE: This will work for first 14 pins on Arduino cards with more than 14 pins.
 const byte PINS_TO_USE[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
 /* pins 0 & 1 are used for serial communication so may not be altered */
 
-const char VERSION = '0';
+const char VERSION = '1';
 
 /*
  Set the value for a pin.
