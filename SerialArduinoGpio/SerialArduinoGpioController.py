@@ -46,9 +46,11 @@ DEBUG = 0
 
 # remove these devices from list -- this list is ad hoc
 # probably best to put the port names on the command line
-FILTERED_DEVICES = ['COM1', 'COM2', 'COM3', 'COM4', # windows seems to use these
-                    'COM5', 'COM6', 'COM7', 'COM8', # windows seems to use these
-                    '/dev/ttyAMA0'] # raspberry pi console
+FILTERED_OUT_DEVICES = ['COM1', 'COM2', # windows seems to use these
+                        'COM3', 'COM4', # windows seems to use these
+                        'COM5', 'COM6', # windows seems to use these
+                        'COM7', 'COM8', # windows seems to use these
+                        '/dev/ttyAMA0'] # raspberry pi console
 
 PORT_SPEED = 115200
 TIMEOUT_IN_SEC = 2.0
@@ -74,15 +76,15 @@ class SerialArduinoGpioController:
     as a very basic GPIO device
     '''
         
-    def __init__(self, serial_port):
+    def __init__(self, serial_port_name):
         '''
         Try to create a controller using the passed serial port name.
         
         Names are a string of the form '/dev/ttyXXX' where XXX is a 
         string such as ACM# or USB#
         '''
-        self._name = serial_port;
-        self._port = serial.Serial(serial_port, 
+        self._name = serial_port_name;
+        self._port = serial.Serial(serial_port_name, 
                                    PORT_SPEED, 
                                    timeout=TIMEOUT_IN_SEC)
         #if DEBUG:
@@ -100,7 +102,7 @@ class SerialArduinoGpioController:
             self._version = None
             raise RuntimeError('invalid version of "{}" received from device'.format(v))
         if DEBUG:
-            print('created SerialArduinoGpioController for "{}"'.format(serial_port))
+            print('created SerialArduinoGpioController for "{}"'.format(serial_port_name))
             print('found version of {}'.format(self._version))
 
 
@@ -260,7 +262,7 @@ if __name__ == "__main__":
         # this will hold the names of serial port devices which might have Arduino
         serial_devices = [comport.device for comport in serial.tools.list_ports.comports()]
         for d in serial_devices:
-            if d not in FILTERED_DEVICES:
+            if d not in FILTERED_OUT_DEVICES:
                 filtered_devices.append(d)
             else:
                 print('removed "{}" from device list'.format(d))
