@@ -27,7 +27,7 @@
 Description=Collect GPIO values from an Arduino connected on a serial port with GPIO sketch
 
 [Service]
-ExecStart=/opt/Controllers/SerialArduinoGpioController/SerialArduinoGpioMonitor.py
+ExecStart=/opt/Controllers/SerialArduinoGpio/SerialArduinoGpioMonitor.py
 
 [Install]
 WantedBy=multi-user.target
