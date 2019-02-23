@@ -29,6 +29,10 @@ or outputs with minimal fuss or danger.
 A command to save the current pin state to be used when the device is
 reset is also provided as some devices need particular values at startup.
 
+It is also possible to place a persistent name (16 characters) in to the 
+Arduino so even if the USB ports get renamed over time you can keep track
+of which Arduino is connected to various signals.
+
 ### Configure the software (15 minutes -- longer if system is not up-to-date)
 
 This is for Raspberry Pi or Ubuntu Linux.  Setup on other systems varies.
@@ -36,6 +40,10 @@ This is for Raspberry Pi or Ubuntu Linux.  Setup on other systems varies.
 Install python3 using a command of:
 
     sudo apt-get -y install python3 python3-dev git
+    
+Install a python serial library using a command of:
+
+    pip3 install -r requirements.txt
 
 Make sure `python3` works and RPi.GPIO is installed by typing:
 
@@ -70,8 +78,7 @@ Next
 
     cd /opt/Controllers/SerialArduinoGpio/
     
-and make sure there are
-a number of python and other scripts present.
+and make sure there are a number of python programs and other scripts present.
 
 ### Attach Arduino to development system and program sketch. (15 minutes)
 
@@ -92,7 +99,7 @@ Arduino.  Remember to set the serial port speed to 115200.
 You can read all the pin values with '?'  The version command '`' (that 
 is back-tic) prints a version number.
 
-### Attach the Arduino to the Raspberry Pi USB port (5 minutes)
+### Attach the Arduino to the Raspberry Pi USB port (2 minutes)
 
 Once this is working attach the Arduino to a USB port on the Raspberry Pi.
 
@@ -110,10 +117,10 @@ Try
 and you should get some messages telling the card was found and is working:
 
     pgc@tjbot:~ $ sudo python ./SerialArduinoGpioController.py /dev/ttyACM0
-	 trying COM9
-	 made controller for "/dev/ttyACM0"
-	 controller "/dev/ttyACM0":
-	 code version is 1
+	 made controller on port "/dev/ttyACM0"
+	 serial_port: "/dev/ttyACM0":
+    persistent name: "????????????????"
+    code version is: "V2_SerialArduinoGpio"
 	 reading pins gives "{2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1, 13: 0}"
 	 analog values are {0: 464, 1: 413, 2: 374, 3: 343, 4: 311, 5: 287, 6: 299, 7: 309}
 
@@ -122,11 +129,11 @@ and you should get some messages telling the card was found and is working:
 If you don't see something like the above there is a problem.
 
 Note:  If your Arduino had values written to the EEPROM the pins might not
-start off as `1`.
+start off as `1`.  Also, if there are previous values in the EEPROM you 
+might see some other persistent name.
  
  
 ### Enjoy! 
-
 
 
 
