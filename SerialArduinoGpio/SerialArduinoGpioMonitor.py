@@ -30,6 +30,15 @@ The raw data is stored with a timestamp for later processing.
 
 The Arduino(s) is(are) accessed by serial port(s) on a Raspberry Pi.
 
+Each line is a map of {'time' : 'iso-time', 
+                       'name': <persistent_name>,
+                       'values': {<pin>:<value>}
+                       }
+                         
+or a map of {'time' : 'iso-time', 
+             'event': 'event data'
+             }
+                
 """
 
 import argparse
@@ -42,10 +51,11 @@ import time
 import SerialArduinoGpioController
 
 import serial.tools.list_ports
+from bdb import checkfuncname
 
-DEBUG = 0
+DEBUG = 1
 
-DEFAULT_SAMPLE_INTERVAL_IN_SECONDS = 5 * 60
+DEFAULT_SAMPLE_INTERVAL_IN_SECONDS = 60
 DEFAULT_LOG_FILE_NAME = '/opt/Controllers/logs/SerialArduinoGpioMonitor.log'
 
 # remove these devices from list -- this list is ad hoc
@@ -79,7 +89,7 @@ def emit_sample(output, controller_name, values):
     '''
     send a line with sample values to the output with a time stamp
     '''
-    item = {'controller_name':controller_name,
+    item = {'name':controller_name,
             'values':values}
     emit_json_map(output, item)
 
@@ -105,6 +115,39 @@ def determine_ports():
               file=sys.stderr, flush=True)
     
     return filtered_devices
+
+
+def get_controllers(port_list):
+    '''
+    Try to find usable controllers on the given ports.
+    
+    return a map of {name, controller}
+    '''
+    result = {}
+    for p in port_list:
+
+        for serial_port_name in port_name_list:
+            try:
+                c = SerialArduinoGpioController.SerialArduinoGpioController(serial_port_name)
+                version = c.get_version()
+                if version >= 'V2':
+                    name = c.get_persistent_name()
+                    result[name] = c
+                if DEBUG:
+                    print('found controller "{}" on port "{}" with version "{}"\n'.format(name, serial_port_name, version),
+                          file=sys.stderr, flush=True)
+                    
+                else:
+                    if DEBUG:
+                        print('controller on port "{}" has old version "{}"\n'.format(serial_port_name, version),
+                              file=sys.stderr, flush=True)
+            except Exception as e:
+                if DEBUG:
+                    print('while creating controller on port "{}" caught "{}"\n'.format(serial_port_name, e),
+                          file=sys.stderr, flush=True)
+    
+    return result
+
 
 #
 # main
@@ -154,30 +197,40 @@ if __name__ == "__main__":
         port_name_list = determine_ports()
 
     # get serial port access for each serial device
-    controllers = set()
-    for serial_port_name in port_name_list:
-        c = SerialArduinoGpioController.SerialArduinoGpioController(serial_port_name)
-        controllers.add(c)
-        if DEBUG:
-            print('include controller:  {}\n'.format(c.get_name()),
-                  file=sys.stderr, flush=True)
-            print('VERSION = "{}"'.format(c.get_version()),
-                                          file=sys.stderr, flush=True)
-
+    controllers = get_controllers(port_name_list)
+    
     # open file to log pressure over time
     with open(log_filename, 'a') as output_file:
 
         emit_event(output_file, 'STARTING MONITOR')
-        for c in controllers:
-            event_text = 'FOUND CONTROLLER ON PORT {}'.format(c.get_name())
+        if len(controllers) > 0:
+            for ck in controllers.keys():
+                event_text = 'Found controller {} of version {}'.format(ck, controllers[ck].get_version())
+                emit_event(output_file, event_text)
+        else:
+            event_text = 'NO CONTROLLERS FOUND'.format()
             emit_event(output_file, event_text)
+            
 
         next_sample_time = time.time()
         while True:
-            for c in controllers:
-                values = c.read_pin_values()
-                emit_sample(output_file, c.get_name(), values)
-
+            # making copy of names so we can remove controllers in loop
+            c_name_list = []
+            for c_name in controllers:
+                c_name_list.append(c_name)
+            # operate on copy of keys
+            for c_name in c_name_list:
+                try:
+                    values = controllers[c_name].read_pin_values()
+                    emit_sample(output_file, c_name, values)
+                except Exception as e:
+                    event_text = 'While reading controller {} caught exception of {}.  removing'.format(ck, e)
+                    emit_event(output_file, event_text)
+                    controllers.pop(c_name, None)
+                    if DEBUG:
+                        print(event_text.format(),
+                              file=sys.stderr, flush=True)
+                    
             # wait till next sample time            
             next_sample_time = next_sample_time + sample_interval
             delay_time = next_sample_time - time.time()

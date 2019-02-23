@@ -2,7 +2,7 @@
 """
 MIT License
 
-Copyright (c) 2018 Paul G Crumley
+Copyright (c) 2018, 2019 Paul G Crumley
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -58,9 +58,9 @@ RESET_TIME_IN_SEC = 3.0
 VALID_GPIO_PINS = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
 
 NL = '\n'.encode('UTF-8')
-READ_COMMAND = '?'.encode('UTF-8')
-SAVE_COMMAND = '+'.encode('UTF-8')
-VERSION_COMMAND = '`'.encode('UTF-8')
+READ_GPIO_COMMAND = '?'.encode('UTF-8')
+SAVE_POWER_ON_VALUES_COMMAND = '+'.encode('UTF-8')
+READ_VERSION_COMMAND = '`'.encode('UTF-8')
 GET_ANALOG_PIN_COMMAND = ['0'.encode('UTF-8'),
                           '1'.encode('UTF-8'),
                           '2'.encode('UTF-8'),
@@ -70,6 +70,12 @@ GET_ANALOG_PIN_COMMAND = ['0'.encode('UTF-8'),
                           '6'.encode('UTF-8'),
                           '7'.encode('UTF-8')
                           ]
+READ_PERSISTENT_NAME_COMMAND = '='.encode('UTF-8')
+SAVE_PERSISTENT_NAME_COMMAND = '#'.encode('UTF-8')
+
+PERSISTENENT_NAME_SIZE = 16
+
+
 class SerialArduinoGpioController:
     '''
     This class allows an Arduino on a Raspberry Pi serial port to used
@@ -94,10 +100,9 @@ class SerialArduinoGpioController:
         time.sleep(RESET_TIME_IN_SEC)  
         v='<TBD>'
         try:
-            self._port.write(VERSION_COMMAND)
+            self._port.write(READ_VERSION_COMMAND)
             self._port.flush()
-            v = self._port.readline().decode('UTF-8').strip()
-            self._version = int(v)
+            self._version = self._port.readline().decode('UTF-8').strip()
         except:
             self._version = None
             raise RuntimeError('invalid version of "{}" received from device'.format(v))
@@ -124,14 +129,76 @@ class SerialArduinoGpioController:
             self._version = None
 
     
-    def get_name(self):
+    def get_serial_port_name(self):
         '''
-        return the serial device name
+        return the serial port name to which this device is attached
         '''
         if not self.is_active():
-            raise RuntimeError('get_name() called on inactive controller')
+            raise RuntimeError('get_serial_portname() called on inactive controller')
 
         return self._name
+    
+    
+    def get_name(self):
+        '''
+        deprecated
+        '''
+        return self.get_serial_port_name()
+    
+    
+    def get_persistent_name(self):
+        '''
+        return the persistent device name
+        '''
+        if not self.is_active():
+            raise RuntimeError('get_persistent_name() called on inactive controller')
+
+        if self._version >= 'V2':
+            self._port.write(READ_PERSISTENT_NAME_COMMAND)
+            self._port.flush()
+            l = self._port.readline().decode('UTF-8').strip()
+            if DEBUG:
+                print('line from READ_PERSISTENT_NAME_CONNAND is: "{}"'.format(l))  # don't need a \n
+        else:
+            l = 'not_avail_in_this_version'
+        
+        return l
+    
+    
+    def store_persistent_name(self, name):
+        '''
+        Save the persistent device name.
+        
+        name must be 16 characters long.
+        '''
+        if not self.is_active():
+            raise RuntimeError('get_persistent_name() called on inactive controller')
+        
+        if isinstance(name, bytes):
+            passed_name = name
+        else:
+            passed_name = str(name).encode('UTF-8')
+            
+        if len(passed_name) != PERSISTENENT_NAME_SIZE:
+            raise RuntimeError('passed name of "{}" is not of size {}'.format(passed_name,
+                                                                              PERSISTENENT_NAME_SIZE))
+            
+        if self._version >= 'V2':
+            self._port.write(SAVE_PERSISTENT_NAME_COMMAND + passed_name)
+            self._port.flush()
+
+            # verify operation
+            new_name = self.get_persistent_name()
+            if name != new_name:
+                raise RuntimeError('new_name of "{}" does not match passed name {}'.format(new_name,
+                                                                                           passed_name))
+            
+            if DEBUG:
+                print('line from READ_PERSISTENT_NAME_CONNAND is: "{}"'.format(l))  # don't need a \n
+        else:
+            raise RuntimeError('function only on V2 and above')
+        
+        return
     
     
     def get_version(self):
@@ -169,7 +236,7 @@ class SerialArduinoGpioController:
         if not self.is_active():
             raise RuntimeError('read_pin_values() called on inactive controller')
 
-        self._port.write(READ_COMMAND)
+        self._port.write(READ_GPIO_COMMAND)
         self._port.flush()
         l = self._port.readline().decode('UTF-8').strip()
         if DEBUG:
@@ -204,15 +271,23 @@ class SerialArduinoGpioController:
         return result
 
 
-    def save_pins(self):
+    def save_power_on_pin_values(self):
         '''
         Save the current output pin values so they are reloaded at reset
         '''
         if not self.is_active():
             raise RuntimeError('save_pins() called on inactive controller')
 
-        self._port.write(SAVE_COMMAND)
+        self._port.write(SAVE_POWER_ON_VALUES_COMMAND)
         self._port.flush()
+        return
+
+
+    def save_pins(self):
+        '''
+        deprecated
+        '''
+        self.save_power_on_pin_values()
         return
 
 
@@ -253,36 +328,37 @@ class SerialArduinoGpioController:
 #
 if __name__ == "__main__":
     
-    filtered_devices = []
+    filtered_ports = []
     # use list from command line if provided
     if len(sys.argv) > 1:
-        filtered_devices = sys.argv[1:]
+        filtered_ports = sys.argv[1:]
     # otherwise look for possible devices to try
     else:
         # this will hold the names of serial port devices which might have Arduino
         serial_devices = [comport.device for comport in serial.tools.list_ports.comports()]
         for d in serial_devices:
             if d not in FILTERED_OUT_DEVICES:
-                filtered_devices.append(d)
+                filtered_ports.append(d)
             else:
                 print('removed "{}" from device list'.format(d))
         if DEBUG:
-            print('found devices include:  {}\n'.format(filtered_devices))
+            print('found ports include:  {}\n'.format(filtered_ports))
 
     # get serial port access for each serial device
-    for s in filtered_devices:
+    for s in filtered_ports:
         print('trying {}'.format(s))
         p = SerialArduinoGpioController(s)
-        print('made controller for "{}"'.format(s))
+        print('made controller on port "{}"'.format(s))
         if not p.is_active():
             print('CONTROLLER DOES NOT CLAIM TO BE ACTIVE AFTER CREATION!!')
 
         # exercise this port if version > 0
-        if p._version >= 0:
-            print('controller "{}":'.format(p.get_name()))
-            print('  code version is {}'.format(p.get_version()))
-            print('  reading pins gives "{}"'.format(p.read_pin_values()))
-            print('  analog values are {}'.format(p.read_analog_values()))
+        if p._version >= ' ':
+            print('serial_port: "{}":'.format(p.get_serial_port_name()))
+            print('  persistent name: "{}":'.format(p.get_persistent_name()))
+            print('  code version is: "{}"'.format(p.get_version()))
+            print('  reading pins gives: "{}"'.format(p.read_pin_values()))
+            print('  analog values are: {}'.format(p.read_analog_values()))
         
         p.close()
         if p.is_active():

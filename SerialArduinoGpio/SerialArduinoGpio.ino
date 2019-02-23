@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018 Paul G Crumley
+Copyright (c) 2018, 2019 Paul G Crumley
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 @author: pgcrumley@gmail.com
-*/
+ */
 
 /*
 This provides a very simple program which takes commands from the serial
@@ -48,18 +48,23 @@ Very simple commands:  'a-n', 'A-N', '?', '+'
   C-N set pin 2-13 HIGH (mode INPUT_PULLUP) and return nothing
   ? returns "xxx...xxx\n" where each x is a lower or UPPER case letter in the
     range of pins that the board supports to indicate if the pin is low or high
-    For example an UNO returns "cdefghijklmn\n" as only those pins are supported
-    since pins 0 and 1 are used for the serial port leaving pins 2-13.
-  + sets the current state of the outputs to the POWER-ON state.
-  ` returns the version of the code, starting with 0
+    For example an UNO returns "cdefghijklmn\n" as only those pins are
+    supported.  Additionally, since pins 0 and 1 are used for the serial port
+    leaving pins 2-13 for use.
+  + saves the current state of the outputs to be restored at POWER-ON.
+  ` returns the version and name of the code as a string
+  = returns the 16 byte name from EEPROM as a string
+  # reads next 16 bytes from Serial and saves as name in EEPROM
 
 Everything else received is ignored.
 
 NOTE: This will work for first 14 pins on Arduino cards with more than 14 pins.
 
 Version
-0		initial version
-1		added analog capability
+0       initial version
+1       added analog capability
+V2      added sketch name in version string
+		added ability to store a persistent name in EEPROM
 
  */
 #include <EEPROM.h>
@@ -72,106 +77,156 @@ Version
 const byte PINS_TO_USE[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
 /* pins 0 & 1 are used for serial communication so may not be altered */
 
-const char VERSION = '1';
+/* where we place the 16 bytes of name in EEPROM */
+const int EEPROM_NAME_OFFSET = 64;
+/* exact size of name in EEPROM */
+const int EEPROM_NAME_SIZE = 16;
+
+const char VERSION[] = "V2_SerialArduinoGpio";
 
 /*
  Set the value for a pin.
  */
 void set_pin(int pin, int state) {
-    if (state) {
-        pinMode(pin, INPUT_PULLUP);
-    } else {
-        pinMode(pin, OUTPUT);
-        digitalWrite(pin, LOW);
-    }
+	if (state) {
+		pinMode(pin, INPUT_PULLUP);
+	} else {
+		pinMode(pin, OUTPUT);
+		digitalWrite(pin, LOW);
+	}
 }
 
 /*
  Standard Arduino setup function -- runs once at restart.
  */
 void setup(void) {
-    for (int i = 0; i < sizeof(PINS_TO_USE); i++) {
-        int pin = PINS_TO_USE[i];
-        set_pin(pin, EEPROM[pin]);
-    }
+	for (unsigned int i = 0; i < sizeof(PINS_TO_USE); i++) {
+		int pin = PINS_TO_USE[i];
+		set_pin(pin, EEPROM[pin]);
+	}
 
-    Serial.begin(SERIAL_BAUD_RATE);
-    while (!Serial) {
-        ; // wait for serial port to connect. Needed for native USB port only
-    }
+	Serial.begin(SERIAL_BAUD_RATE);
+	while (!Serial) {
+		; // wait for serial port to connect. Needed for native USB port only
+	}
 }
 
 /*
  Send back a string with the current pin states.
  */
 void sendValues() {
-    char output_str[] = "cdefghijklmn\n";
-    for (int i = 0; i < sizeof(PINS_TO_USE); i++) {
-        if (LOW == digitalRead(PINS_TO_USE[i])) {
-            output_str[i] = 'c' + i;
-        } else {
-            output_str[i] = 'C' + i;
-        }
-    }
-    Serial.print(output_str);
+	char output_str[] = "cdefghijklmn\n";
+	for (unsigned int i = 0; i < sizeof(PINS_TO_USE); i++) {
+		if (LOW == digitalRead(PINS_TO_USE[i])) {
+			output_str[i] = 'c' + i;
+		} else {
+			output_str[i] = 'C' + i;
+		}
+	}
+	Serial.print(output_str);
 } // sendValues
 
 /*
  Send back a string with the analog value of a pin.
  */
 void sendAnalog(int pin) {
-    int value = analogRead(pin);
-    Serial.println(value);
+	int value = analogRead(pin);
+	Serial.println(value);
 } // sendAnalog(int pin)
 
 /*
  Save current pin states for use at next power on.
  */
 void saveValues() {
-    for (int i = 0; i < sizeof(PINS_TO_USE); i++) {
-        int pin = PINS_TO_USE[i];
-        EEPROM.update(pin, digitalRead(pin));
-    }
+	for (unsigned int i = 0; i < sizeof(PINS_TO_USE); i++) {
+		int pin = PINS_TO_USE[i];
+		EEPROM.update(pin, digitalRead(pin));
+	}
 } // saveValues
 
+/*
+ Retrieve EEPROM_NAME_SIZE bytes of the name from EEPROM and send to Serial
+ */
+void retrieveName() {
+	char name[EEPROM_NAME_SIZE+1]; // extra space for \0
+	for (unsigned int i = 0; i < sizeof(name); i++) {
+		char c = EEPROM[EEPROM_NAME_OFFSET + i];
+		if ((c < ' ') || (c > '~')) {
+			c = '?';
+		}
+		name[i] = c;
+	}
+	name[EEPROM_NAME_SIZE] = '\0';
+	Serial.println(name);
+}
+
+/*
+ Read next EEPROM_NAME_SIZE characters from Serial and save those to EEPROM
+ */
+void saveName() {
+	char name[EEPROM_NAME_SIZE];
+	for (unsigned int i = 0; i < sizeof(name); i++) {
+		char c = -1;
+		while (-1 == (c = Serial.read())) {
+		}
+		if ((c < ' ') || (c > '~')) {
+			c = '_';
+		}
+		EEPROM[EEPROM_NAME_OFFSET + i] = c;
+	}
+}
+
 void loop(void) {
-    /* wait till the controller tells us to do something by sending a '\n' */
-    char c;
-    while (-1 == (c = Serial.read())) {
-    }
-    if (DEBUG) {
-        Serial.print("Command: 0x");
-        Serial.println(c, HEX);
-    }
+	/* wait till the controller tells us to do something by sending a '\n' */
+	char c;
+	while (-1 == (c = Serial.read())) {
+	}
+	if (DEBUG) {
+		Serial.print("Command: 0x");
+		Serial.println(c, HEX);
+	}
 
-    if (('c' <= c) && ('n' >= c)) {
-        set_pin(c - 'a', LOW);
-        return;
-    }
-    if (('C' <= c) && ('N' >= c)) {
-        set_pin(c - 'A', HIGH);
-        return;
-    }
-    if ('?' == c) {
-        sendValues();
-        return;
-    }
-    /* read analog inputs */
-    if (('0' <= c) && ('7' >= c)) {
-        sendAnalog(c-'0');
-        return;
-    }
-    if ('+' == c) {
-        saveValues();
-        return;
-    }
-    if ('`' == c) {
-        Serial.println(VERSION);
-        return;
-    }
+	if (('c' <= c) && ('n' >= c)) {
+		set_pin(c - 'a', LOW);
+		return;
+	}
+	if (('C' <= c) && ('N' >= c)) {
+		set_pin(c - 'A', HIGH);
+		return;
+	}
+	if ('?' == c) {
+		sendValues();
+		return;
+	}
+	/* read analog inputs */
+	if (('0' <= c) && ('7' >= c)) {
+		sendAnalog(c-'0');
+		return;
+	}
+	if ('+' == c) {
+		saveValues();
+		return;
+	}
+	if ('`' == c) {
+		Serial.println(VERSION);
+		return;
+	}
+	if ('=' == c) {
+		retrieveName();
+		return;
+	}
+	if ('#' == c) {
+		saveName();
+		return;
+	}
 
-    if (DEBUG) {
-        Serial.println("got unknown command");
-    }
+	if ('\n' == c) {
+		// ignore new line characters
+		return;
+	}
+
+	if (DEBUG) {
+		Serial.println("got unknown command");
+	}
 
 } // loop()
