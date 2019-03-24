@@ -53,7 +53,7 @@ import SerialArduinoGpioController
 import serial.tools.list_ports
 from bdb import checkfuncname
 
-DEBUG = 1
+DEBUG = 0
 
 DEFAULT_SAMPLE_INTERVAL_IN_SECONDS = 60
 DEFAULT_LOG_FILE_NAME = '/opt/Controllers/logs/SerialArduinoGpioMonitor.log'
