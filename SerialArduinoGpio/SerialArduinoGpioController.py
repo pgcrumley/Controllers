@@ -42,7 +42,7 @@ import time
 import serial
 import serial.tools.list_ports
 
-DEBUG = 0
+DEBUG = None
 
 # remove these devices from list -- this list is ad hoc
 # probably best to put the port names on the command line
@@ -153,16 +153,16 @@ class SerialArduinoGpioController:
         if not self.is_active():
             raise RuntimeError('get_persistent_name() called on inactive controller')
 
+        # value if early versino
+        persistent_name = 'not_avail_in_this_version'
         if self._version >= 'V2':
             self._port.write(READ_PERSISTENT_NAME_COMMAND)
             self._port.flush()
-            l = self._port.readline().decode('UTF-8').strip()
+            persistent_name = self._port.readline().decode('UTF-8').strip()
             if DEBUG:
-                print('line from READ_PERSISTENT_NAME_CONNAND is: "{}"'.format(l))  # don't need a \n
-        else:
-            l = 'not_avail_in_this_version'
+                print('line from READ_PERSISTENT_NAME_COMMAND is: "{}"'.format(persistent_name))  # don't need a \n
         
-        return l
+        return persistent_name
     
     
     def store_persistent_name(self, name):
@@ -189,12 +189,12 @@ class SerialArduinoGpioController:
 
             # verify operation
             new_name = self.get_persistent_name()
-            if name != new_name:
-                raise RuntimeError('new_name of "{}" does not match passed name {}'.format(new_name,
-                                                                                           passed_name))
-            
             if DEBUG:
-                print('line from READ_PERSISTENT_NAME_CONNAND is: "{}"'.format(l))  # don't need a \n
+                print('line from get_persistent_name() is: "{}"'.format(new_name))  # don't need a \n
+            new_name = new_name.encode('UTF-8')    
+            if passed_name != new_name:
+                raise RuntimeError('new_name of "{}" does not match passed name "{}"'.format(new_name,
+                                                                                             passed_name))
         else:
             raise RuntimeError('function only on V2 and above')
         
@@ -240,7 +240,7 @@ class SerialArduinoGpioController:
         self._port.flush()
         l = self._port.readline().decode('UTF-8').strip()
         if DEBUG:
-            print('line: "{}"'.format(l))  # don't need a \n
+            print('line read from device: "{}"'.format(l))  # don't need a \n
 
         result = {}
         for c in l:
@@ -307,7 +307,7 @@ class SerialArduinoGpioController:
         self._port.flush()
         l = self._port.readline().decode('UTF-8').strip()
         if DEBUG:
-            print('line: "{}"'.format(l))  # don't need a \n
+            print('line read from device: "{}"'.format(l))  # don't need a \n
         # return what we get from the Arduino
         return int(l)
     
