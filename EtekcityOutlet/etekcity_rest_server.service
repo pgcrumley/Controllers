@@ -22,9 +22,14 @@
 #
 # @author: pgcrumley@gmail.com
 #
+# Note use of After and Wants to help ensure the network is running before
+# starting this service
+#
 
 [Unit]
 Description=Run REST server for Etekcity outlet controller
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
