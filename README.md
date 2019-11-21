@@ -31,4 +31,4 @@ The default port numbers for the REST servers are:
   
   Note:  The REST server for GPIO on Arduino is not available at this time
   
-  
+  Note:  This is now dormant and has been moved to public git.  
