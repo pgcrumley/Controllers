@@ -250,7 +250,7 @@ Finally, you can check the status of the service with
 
     sudo systemctl status -l etekcity_rest_server.service
     
-This last command should provide out similar to 
+This last command should provide output similar to 
 
     o etekcity_rest_server.service - Run REST server for Etekcity outlet controller
        Loaded: loaded (/lib/systemd/system/etekcity_rest_server.service; enabled)
