@@ -51,7 +51,6 @@ import time
 import SerialArduinoGpioController
 
 import serial.tools.list_ports
-from bdb import checkfuncname
 
 DEBUG = 0
 
@@ -199,7 +198,7 @@ if __name__ == "__main__":
     # get serial port access for each serial device
     controllers = get_controllers(port_name_list)
     
-    # open file to log pressure over time
+    # open file to log values
     with open(log_filename, 'a') as output_file:
 
         emit_event(output_file, 'STARTING MONITOR')
@@ -238,5 +237,5 @@ if __name__ == "__main__":
                 print('delay_time = {}'.format(delay_time),
                       file=sys.stderr, flush=True)
         
-            if 0 < delay_time:  # don't sleep if already past next sample time
+            if 0 >= delay_time:  # don't sleep if already past next sample time
                 time.sleep(delay_time)
