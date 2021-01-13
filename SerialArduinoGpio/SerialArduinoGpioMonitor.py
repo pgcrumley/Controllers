@@ -2,7 +2,7 @@
 """
 MIT License
 
-Copyright (c) 2017, 2019 Paul G Crumley
+Copyright (c) 2017, 2021 Paul G Crumley
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -237,5 +237,5 @@ if __name__ == "__main__":
                 print('delay_time = {}'.format(delay_time),
                       file=sys.stderr, flush=True)
         
-            if 0 >= delay_time:  # don't sleep if already past next sample time
+            if 0 < delay_time:  # don't sleep if already past next sample time
                 time.sleep(delay_time)
