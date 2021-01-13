@@ -42,11 +42,7 @@ followed by exactly 16 bytes of name.
 
 Command | Description
 ------- | -----------
-? | returns "xxx...xxx\n" where each x is a lower or UPPER case letter in the
-    range of pins that the board supports to indicate if the pin is low or high
-    For example an UNO returns "cdefghijklmn\n" as only those pins are
-    supported.  Additionally, since pins 0 and 1 are used for the serial port
-    leaving pins 2-13 for use.
+? | returns "xxx...xxx\n" where each x is a lower or UPPER case letter in the range of pins that the board supports to indicate if the pin is low or high.  For example an UNO returns "cdefghijklmn\n" as only those pins are supported.  Additionally, pins 0 and 1 are used for the serial port leaving pins 2-13 for use.
 0-7 | return the value of the named analog input pin
 
 ### Commands to Control Pin Signals
