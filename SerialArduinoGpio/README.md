@@ -32,6 +32,50 @@ reset is also provided as some devices need particular values at startup.
 It is also possible to place a persistent name (16 characters) in to the 
 Arduino so even if the USB ports get renamed over time you can keep track
 of which Arduino is connected to various signals.
+## Commands
+
+Most commands are a single character in length.  The command to set an 
+optional length is an exception as that has one character for the command 
+followed by exactly 16 bytes of name.
+
+### Commands to Retrieve Pin Data
+
+Command | Description
+------- | -----------
+? | returns "xxx...xxx\n" where each x is a lower or UPPER case letter in the
+    range of pins that the board supports to indicate if the pin is low or high
+    For example an UNO returns "cdefghijklmn\n" as only those pins are
+    supported.  Additionally, since pins 0 and 1 are used for the serial port
+    leaving pins 2-13 for use.
+0-7 | return the value of the named analog input pin
+
+### Commands to Control Pin Signals
+
+Command | Description
+------- | -----------
+c-n | set pin 2-13 LOW and return nothing
+C-N | set pin 2-13 HIGH (mode INPUT_PULLUP) and return nothing
+\+ | saves the current state of the outputs to be restored at POWER-ON.
+
+
+### Commands to Identify the Particular Devices
+
+Command | Description
+------- | -----------
+` | returns the version and name of the Arduino sketch as a string
+= | returns the 16 byte name from EEPROM as a string
+\# | reads next 16 bytes from Serial and saves as name in EEPROM
+
+Everything else received is ignored.
+
+NOTE: This will work for first 14 pins on Arduino cards with more than 14 pins.
+
+Version | Description
+------- | -----------
+0 | Initial version
+1 | Aded analog capability
+V2 | Added sketch name in version string and added ability to store a persistent name in EEPROM
+
 
 ### Configure the software (15 minutes -- longer if system is not up-to-date)
 
