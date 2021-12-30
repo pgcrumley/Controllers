@@ -40,9 +40,5 @@ pip3 install -r requirements.txt
 
 mkdir -p /opt/Controllers/logs
 
-sed -e "s;REPLACE-COM-NAME; -c ${1};" \
-  < /opt/Controllers/SerialArduinoGpio/SerialArduinoGpioServer.service \
-  > /lib/systemd/system/SerialArduinoGpioServer.service
-
 systemctl enable SerialArduinoGpioServer
 systemctl start SerialArduinoGpioServer
