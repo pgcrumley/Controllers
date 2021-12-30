@@ -24,16 +24,23 @@
 # @author: pgcrumley@gmail.com
 #
 
-if [ "$1" == "" ] || [ $# -lt 1 ]; then
-        echo "Parameter 1 is empty -- must provide COM port (e. g. /dev/ttyUSB0)"
-        exit 1
+if [ $# -lt 1 ]; then
+    echo "using default COM port of /dev/ttyUSB0"
+    sed -e "s;REPLACE-COM-ARG; -c ${1};" \
+      < /opt/Controllers/SerialArduinoGpio/SerialArduinoGpioServer.service \
+      > /lib/systemd/system/SerialArduinoGpioServer.service
+else
+    echo "adding ' -c ${1}' to exec command"
+    sed -e "s;REPLACE-COM-ARG;;" \
+      < /opt/Controllers/SerialArduinoGpio/SerialArduinoGpioServer.service \
+      > /lib/systemd/system/SerialArduinoGpioServer.service
 fi
 
 pip3 install -r requirements.txt
 
 mkdir -p /opt/Controllers/logs
 
-sed -e "s;REPLACE-COM-NAME;${1};" \
+sed -e "s;REPLACE-COM-NAME; -c ${1};" \
   < /opt/Controllers/SerialArduinoGpio/SerialArduinoGpioServer.service \
   > /lib/systemd/system/SerialArduinoGpioServer.service
 

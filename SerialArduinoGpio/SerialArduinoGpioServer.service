@@ -35,7 +35,7 @@ Wants=network-online.target
 Type=simple
 Restart=always
 RestartSec=5
-ExecStart=/opt/Controllers/SerialArduinoGpio/SerialArduinoGpioServer.py -c REPLACE-COM-NAME
+ExecStart=/opt/Controllers/SerialArduinoGpio/SerialArduinoGpioServer.py REPLACE-COM-ARG
 
 [Install]
 WantedBy=multi-user.target

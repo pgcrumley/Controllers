@@ -171,10 +171,10 @@ if __name__ == '__main__':
                         default=DEFAULT_COM_PORT)
     parser.add_argument("-i", "--icon_filename", 
                         help="icon filenane", 
-                        default=DEFAULT_LOG_FILE_NAME)
+                        default=DEFAULT_ICON_FILE_NAME)
     parser.add_argument("-l", "--log_filename", 
                         help="file to log data, create or append", 
-                        default=DEFAULT_ICON_FILE_NAME)
+                        default=DEFAULT_LOG_FILE_NAME)
     args = parser.parse_args()
 
     if (args.debug):
