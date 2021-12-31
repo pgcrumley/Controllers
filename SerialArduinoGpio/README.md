@@ -26,17 +26,32 @@ LOW which (which sets OUTPUT mode with a value of LOW)
 This use of a pullup for HIGH values allows pins to be used a inputs 
 or outputs with minimal fuss or danger.
 
+The digital pins can be placed in a monitor mode which will watch the pins
+and when debounced changes are detected, asynchronously send the change
+with a single character (c-n for a change to low, C-N for a change to high).
+
+All messages are returned without interruption, so, for example, the response
+to the '?', '0'-'9', '=', '-', or '`' commands will be returned in full
+before an asynchronous event message is sent.
+
+Signals are "debounced" and a stable signal must be observed for at least 3
+consecutive observations separated by no less than 1 mSec.
+
 A command to save the current pin state to be used when the device is
 reset is also provided as some devices need particular values at startup.
 
 It is also possible to place a persistent name (16 characters) in to the 
 Arduino so even if the USB ports get renamed over time you can keep track
 of which Arduino is connected to various signals.
+
+All messages from the device end with a '\\n' (NEWLINE) character.
+Commands do not need the NEWLINE as the lengths are all well-defined.
+
 ## Commands
 
-Most commands are a single character in length.  The command to set an 
-optional length is an exception as that has one character for the command 
-followed by exactly 16 bytes of name.
+Most commands are a single character in length.  Exceptions are the '\#' command
+which is followed by exactly 16 bytes of name, and the '{' and '}' commands
+which are followed by a single character to identify the digital pin.
 
 ### Commands to Retrieve Pin Data
 
@@ -44,6 +59,8 @@ Command | Description
 ------- | -----------
 ? | returns "xxx...xxx\n" where each x is a lower or UPPER case letter in the range of pins that the board supports to indicate if the pin is low or high.  For example an UNO returns "cdefghijklmn\n" as only those pins are supported.  Additionally, pins 0 and 1 are used for the serial port leaving pins 2-13 for use.
 0-7 | return the value of the named analog input pin
+}x | places pin x in  monitor mode (x is 'C'-'N')
+{x | removes pin x from monitor mode (x is 'C'-'N')
 
 ### Commands to Control Pin Signals
 
@@ -52,6 +69,7 @@ Command | Description
 c-n | set pin 2-13 LOW and return nothing
 C-N | set pin 2-13 HIGH (mode INPUT_PULLUP) and return nothing
 \+ | saves the current state of the outputs to be restored at POWER-ON.
+- | retrieves the POWER-ON pin state
 
 
 ### Commands to Identify the Particular Devices
@@ -62,15 +80,20 @@ Command | Description
 = | returns the 16 byte name from EEPROM as a string
 \# | reads next 16 bytes from Serial and saves as name in EEPROM
 
-Everything else received is ignored.
+All other characters are ignored.
 
-NOTE: This will work for first 14 pins on Arduino cards with more than 14 pins.
+####NOTES:
+ 
+* This will work for first 14 pins on Arduino cards with more than 14 pins.
+* Monitor mode is off at POWER-ON and the setting is not
+      saved across reboot
 
 Version | Description
 ------- | -----------
 0 | Initial version
-1 | Aded analog capability
+1 | Added analog capability
 V2 | Added sketch name in version string and added ability to store a persistent name in EEPROM
+V3 | Added '-', '{', and '}' commands
 
 
 ### Configure the software (15 minutes -- longer if system is not up-to-date)
@@ -152,17 +175,14 @@ version of Arduino card you have and `#` is a number.
 
 Try
 
-    sudo python ./SerialArduinoGpioController.py <device-name>
-    
-and you should get some messages telling the card was found and is working:
-
     pgc@tjbot:~ $ sudo python ./SerialArduinoGpioController.py /dev/ttyACM0
-	 made controller on port "/dev/ttyACM0"
-	 serial_port: "/dev/ttyACM0":
-    persistent name: "????????????????"
-    code version is: "V2_SerialArduinoGpio"
-	 reading pins gives "{2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1, 13: 0}"
-	 analog values are {0: 464, 1: 413, 2: 374, 3: 343, 4: 311, 5: 287, 6: 299, 7: 309}
+     made controller on port "/dev/ttyACM0"
+     serial_port: "/dev/ttyACM0":
+    code version is: "V3_SerialArduinoGpio"
+    persistent name: "????????????????":
+    digital values are: "{2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1, 13: 0}"
+    analog values are: "{0: 464, 1: 408, 2: 398, 3: 368, 4: 326, 5: 316, 6: 332, 7: 327}"
+    power-on values: "{2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1, 13: 1}"
 
     pgc@tjbot:~ $
 
