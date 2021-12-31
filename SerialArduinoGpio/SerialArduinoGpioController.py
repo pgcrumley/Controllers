@@ -276,7 +276,7 @@ class SerialArduinoGpioController:
             c = SET_GPIO_PIN_HIGH_COMMAND[pin]
         else:
             c = SET_GPIO_PIN_LOW_COMMAND[pin]
-        self.__serial_port.write(c.encode('UTF-8'))
+        self.__serial_port.write(c)
         self.__serial_port.flush()
         return
 
@@ -284,7 +284,7 @@ class SerialArduinoGpioController:
         '''
         deprecated -- use the read_digital_values function instead
         '''          
-        self.set_digital_value(self, pin, value)
+        self.set_digital_value(pin, value)
         return
 
 
@@ -329,11 +329,17 @@ class SerialArduinoGpioController:
             elif c == 'N': result[13] = 1     
         return result
 
+    def read_digital_value(self, pin):
+        '''
+        return the value of a single pin
+        '''
+        return self.read_digital_values()[pin]
+
     def read_pin_values(self):
         '''
         deprecated -- use the read_digital_values function instead
         '''
-        return read_digitial_values(self)
+        return self.read_digitial_values()
 
     def save_power_on_pin_values(self):
         '''
