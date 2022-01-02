@@ -85,7 +85,7 @@ Command | Description
 
 All other characters are ignored.
 
-####NOTES:
+**NOTES:**
  
 * This will work for first 14 pins on Arduino cards with more than 14 pins.
 * Monitor mode is off at POWER-ON and the setting is not
@@ -192,7 +192,7 @@ Try this: (on my example system the Arduino is connected on /dev/ttyUSB0)
 
 If you don't see something like the above there is a problem.
 
-####Note:  If your Arduino had values written to the EEPROM the pins might not
+**Note:**  If your Arduino had values written to the EEPROM the pins might not
 start off as `1`.  Also, if there are previous values in the EEPROM you 
 might see some other persistent name.
 
@@ -222,7 +222,7 @@ the version information (and make sure you can communicate), try:
     pgc@tjbot:~$ curl http://localhost:10000/version
     {"version": "V2_SerialArduinoGpio"}pgc@tjbot:~$
     
-####Note: the REST does not always have `newline` characters
+**Note:** the REST does not always have `newline` characters
 
     pgc@tjbot:~$ curl http://localhost:10000/digital_pins
     {"values": {"2": 1, "3": 1, "4": 1, "5": 1, "6": 1, "7": 1, "8": 1, "9": 1, "10": 1, "11": 1, "12": 1, "13": 0}}pgc@tjbot:~$
