@@ -1,23 +1,24 @@
 # Serial Arduino GPIO Controller
 
-This software, when used with an Arduino connected to a USB serial port
-on a Raspberry Pi, Windows, or other type of system.  The software allows
+When used with an Arduino connected to a USB serial port
+on a Raspberry Pi, Windows, or other type of system, this software allows
 the controlling system to read and set the values of
-most GPIO pins on the Arduino.  (pins 0 and 1 are used by the serial 
+GPIO pins 2 through 13 on the Arduino.  (pins 0 and 1 are used by the serial 
 port function).  It is also possible to read the values of the analog pins.
 
 Since the Arduino gets power from the USB connection no
 extra power supply is needed.  This arrangement allows the controlling
 system to 
-control powered devices with a less direct connection to hazardous voltages.
+control devices with a less direct connection to potentially hazardous voltages.
 
 The use of USB allows relatively long distances
 between the controlling system and the controlled device.  
 (e.g. some USB extenders can 
 reach 100 meters).  One may also have many GPIO ports on a single 
 controlling system
-by connecting many Arduinos (each supports 12 GPIO pins and 6 or more
-analog signala) to USB ports.
+by connecting many Arduinos via USB ports
+as each Arduino supports 12 GPIO pins and 6 or more
+analog signals
 
 The python code provides a simple interface to the functions, allowing one
 to set a pin HIGH (which puts the pin in INPUT_PULLUP mode) or
@@ -27,18 +28,20 @@ This use of a pullup for HIGH values allows pins to be used a inputs
 or outputs with minimal fuss or danger.
 
 The digital pins can be placed in a monitor mode which will watch the pins
-and when debounced changes are detected, asynchronously send the change
-with a single character (c-n for a change to low, C-N for a change to high).
+and when debounc-ed changes are detected, asynchronously send the detected 
+change with a single character 
+('c'-'n' for a change to low, 'C'-'N' for a change to high).
 
-All messages are returned without interruption, so, for example, the response
+All messages which are responses to commands on the serial port 
+are returned without interruption, so, for example, the response
 to the '?', '0'-'9', '=', '-', or '`' commands will be returned in full
 before an asynchronous event message is sent.
 
-Signals are "debounced" and a stable signal must be observed for at least 3
+Signals are "debounc-ed" and a stable signal must be observed for at least 3
 consecutive observations separated by no less than 1 mSec.
 
-A command to save the current pin state to be used when the device is
-reset is also provided as some devices need particular values at startup.
+A command to save the current pin state to be loaded when the device is
+reset is also provided as some uses need particular values at startup.
 
 It is also possible to place a persistent name (16 characters) in to the 
 Arduino so even if the USB ports get renamed over time you can keep track
@@ -87,6 +90,7 @@ All other characters are ignored.
 * This will work for first 14 pins on Arduino cards with more than 14 pins.
 * Monitor mode is off at POWER-ON and the setting is not
       saved across reboot
+* Many Arduino boards have an LED on pin 13 so this PIN will likely always appear to be LOW
 
 Version | Description
 ------- | -----------
@@ -171,13 +175,13 @@ you may need to stop the Arduino IDE to release the serial port connection.
 
 Look for the device in `/dev`.  It will have a name such as 
 `/dev/ttyxxx#  ` where `xxx` is `ACM` or `USB` depending on the 
-version of Arduino card you have and `#` is a number.
+version of Arduino card you have, and `#` is a number.
 
-Try
+Try this: (on my example system the Arduino is connected on /dev/ttyUSB0)
 
-    pgc@tjbot:~ $ sudo python ./SerialArduinoGpioController.py /dev/ttyACM0
-     made controller on port "/dev/ttyACM0"
-     serial_port: "/dev/ttyACM0":
+    pgc@tjbot:~ $ sudo python ./SerialArduinoGpioController.py /dev/ttyUSB0
+     made controller on port "/dev/ttyUSB0"
+     serial_port: "/dev/ttyUSB0":
     code version is: "V3_SerialArduinoGpio"
     persistent name: "????????????????":
     digital values are: "{2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1, 13: 0}"
@@ -188,11 +192,72 @@ Try
 
 If you don't see something like the above there is a problem.
 
-Note:  If your Arduino had values written to the EEPROM the pins might not
+####Note:  If your Arduino had values written to the EEPROM the pins might not
 start off as `1`.  Also, if there are previous values in the EEPROM you 
 might see some other persistent name.
+
+### Set up (optional) REST server to allow control via a network
  
- 
+A python program which provides a REST server is one of the programs included
+in the code you cloned from GitHub.  This server can be installed to run
+automatically or you can start the program when you like.  
+
+By default the code listens on IP port 10000 and allows connections from any 
+system that can reach the server on the network.  
+
+To install the server to run automatically every time the system is started
+you can use this script: 
+
+    sudo su -
+    cd /opt/Controllers/SerialArduino
+    InstallSerialArduinoGpioServer.sh <USB device>
+    
+That will install needed packages and set up the code using 
+the `<USB device>` for communication.  
+The default is `/dev/ttyUSB0`
+
+You can then use REST to interact with the system.  For example, to get
+the version information (and make sure you can communicate), try:
+
+    pgc@tjbot:~$ curl http://localhost:10000/version
+    {"version": "V2_SerialArduinoGpio"}pgc@tjbot:~$
+    
+####Note: the REST does not always have `newline` characters
+
+    pgc@tjbot:~$ curl http://localhost:10000/digital_pins
+    {"values": {"2": 1, "3": 1, "4": 1, "5": 1, "6": 1, "7": 1, "8": 1, "9": 1, "10": 1, "11": 1, "12": 1, "13": 0}}pgc@tjbot:~$
+
+The URLs will also work in a web browser
+
+To set the value of one of the GPIO pins you need to send a `PUT` request.
+This sets pin 3 low and the second REST request shows the new value:
+
+    pgc@tjbot:~$ curl -H 'Content-Type: application/json' -X PUT -d '{"value":0}' http://localhost:10000/digital_pins/3
+    {"value": 0}pgc@tjbot:~$
+    pgc@tjbot:~$ curl http://localhost:10000/digital_pins
+    {"values": {"2": 1, "3": 0, "4": 1, "5": 1, "6": 1, "7": 1, "8": 1, "9": 1, "10": 1, "11": 1, "12": 1, "13": 0}}
+    pgc@tjbot:~$
+
+You can also request the value for a single pin.  These are examples for analog and digital pins:
+
+    pgc@tjbot:~$ curl http://localhost:10000/digital_pins/4
+    {"value": 1}pgc@tjbot:~$ curl http://localhost:10000/analog_pins/4
+    {"value": 488}pgc@tjbot:~$
+    
+With REST interface, you can monitor and control the pins from any type of language you like
+(e. g. JavaScript, python, C, Java)  
+
+To see the valid URLs just use the base URL of
+`http://localhost:10000/` in your browser (or with the `curl` command.
+You will get back:
+
+    valid URLs include:
+    "/"
+    "/version"
+    "/name"
+    "/digital_pins"
+    "/analog_pins"
+
 ### Enjoy! 
 
 
