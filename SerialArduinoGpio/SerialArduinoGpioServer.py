@@ -67,14 +67,17 @@ FAVICON = None
 DEFAULT_LOG_FILE_NAME = '/opt/Controllers/logs/SerialArduinoGpioServer.log'
 log_file = None
 
-USAGE_MESSAGE = ('valid URLs include:'
+USAGE_MESSAGE = ('<P>Welcome to the SerialArduinoGpioController</P>'
+                 '<P>Valid URLs include:'
                  '<UL>'
-                 '<LI><a href="/">/</a>'
-                 '<LI><a href="/version">/version</a>'
-                 '<LI><a href="/name">/name</a>'
-                 '<LI><a href="/digital_pins">/digital_pins</a>'
-                 '<LI><a href="/analog_pins">/analog_pins</a>'
+                 '<LI><A HREF="/">/</A>'
+                 '<LI><A HREF="/version">/version</A>'
+                 '<LI><A HREF="/name">/name</A>'
+                 '<LI><A HREF="/digital_pins">/digital_pins</A>'
+                 '<LI><A HREF="/analog_pins">/analog_pins</A>'
                  '</UL>'
+                 '</P>'
+                 '<P>The latest code is available at <a HREF="https://github.com/pgcrumley/Controllers">my GitHub</A></P>'
                  )
 
 #global holds the controller we are using
