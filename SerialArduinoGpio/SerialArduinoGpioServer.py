@@ -77,6 +77,11 @@ USAGE_MESSAGE = ('<P>Welcome to the SerialArduinoGpioController</P>'
                  '<LI><A HREF="/analog_pins">/analog_pins</A>'
                  '</UL>'
                  '</P>'
+                 '<P>The digital [2-13] and analog [0-7] pins can also be retrieved individually.  Examples are:'
+                 '<BR><UL>'
+                 '<LI><A HREF="/digital_pins/12">/digital_pins/12</A>'
+                 '<LI><A HREF="/analog_pins/5">/analog_pins/5</A>'
+                 '</UL></P>'
                  '<P>The latest code is available at <a HREF="https://github.com/pgcrumley/Controllers">my GitHub</A></P>'
                  )
 
