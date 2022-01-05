@@ -69,11 +69,11 @@ log_file = None
 
 USAGE_MESSAGE = ('valid URLs include:'
                  '<UL>'
-                 '<LI>"/"'
-                 '<LI>"/version"'
-                 '<LI>"/name"'
-                 '<LI>"/digital_pins"'
-                 '<LI>"/analog_pins"'
+                 '<LI><a href="/">/</a>'
+                 '<LI><a href="/version">/version</a>'
+                 '<LI><a href="/name">/name</a>'
+                 '<LI><a href="/digital_pins">/digital_pins</a>'
+                 '<LI><a href="/analog_pins">/analog_pins</a>'
                  '</UL>'
                  )
 
