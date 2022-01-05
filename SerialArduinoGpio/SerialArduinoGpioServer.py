@@ -82,6 +82,7 @@ USAGE_MESSAGE = ('<P>Welcome to the SerialArduinoGpioController</P>'
                  '<LI><A HREF="/digital_pins/12">/digital_pins/12</A>'
                  '<LI><A HREF="/analog_pins/5">/analog_pins/5</A>'
                  '</UL></P>'
+                 '<P><B>NOTE: </B>The values returned for unconnected analog pins will "float" around</P>'
                  '<P>The latest code is available at <a HREF="https://github.com/pgcrumley/Controllers">my GitHub</A></P>'
                  )
 
