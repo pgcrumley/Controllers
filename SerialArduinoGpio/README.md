@@ -251,12 +251,24 @@ To see the valid URLs just use the base URL of
 `http://localhost:10000/` in your browser (or with the `curl` command.
 You will get back:
 
-    valid URLs include:
-    "/"
-    "/version"
-    "/name"
-    "/digital_pins"
-    "/analog_pins"
+    Welcome to the SerialArduinoGpioController
+    
+    Valid URLs include:
+    
+    /
+    /version
+    /name
+    /digital_pins
+    /analog_pins
+    
+    The digital [2-13] and analog [0-7] pins can also be retrieved individually. Examples are:
+    
+    /digital_pins/12
+    /analog_pins/5
+    
+    NOTE: The values returned for unconnected analog pins will "float" around
+    
+    The latest code is available at my GitHub
 
 ### Enjoy! 
 
