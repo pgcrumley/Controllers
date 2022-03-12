@@ -26,7 +26,7 @@
 
 mkdir /opt/Controllers/logs
 
-cp /opt/Controllers/EtekcityOutles/etekcity_rest_server.service /lib/systemd/system
+cp /opt/Controllers/EtekcityOutlet/etekcity_rest_server.service /lib/systemd/system
 
 systemctl enable etekcity_rest_server
 systemctl start etekcity_rest_server
